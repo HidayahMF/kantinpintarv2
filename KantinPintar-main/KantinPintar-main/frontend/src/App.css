@@ -1,0 +1,14 @@
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app > div {
+  flex: 1;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}

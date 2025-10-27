@@ -1,0 +1,183 @@
+.cs-user-room {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 62vh;
+  background: #f8f6fc;
+}
+
+.cs-user-room-box {
+  width: 420px;
+  max-width: 97vw;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 6px 32px #21253a22, 0 1.5px 18px #fd5e3618;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: popInChat 0.18s cubic-bezier(.2,1.3,.5,1.01);
+}
+
+@keyframes popInChat {
+  from { opacity: 0; transform: scale(.93) translateY(38px);}
+  to { opacity: 1; transform: scale(1);}
+}
+
+.cs-user-room-header {
+  background: linear-gradient(90deg,#ff6834 80%,#ffd8c0 130%);
+  color: #fff;
+  font-weight: bold;
+  padding: 17px 22px;
+  border-radius: 18px 18px 0 0;
+  font-size: 1.09rem;
+  letter-spacing: 0.02em;
+}
+
+.cs-user-room-body {
+  padding: 17px 13px 10px 13px;
+  max-height: 65vh;
+  overflow-y: auto;
+  background: #f8f6fc;
+  transition: background 0.13s;
+}
+
+/* Chat area */
+.cs-user-room-messages {
+  min-height: 170px;
+  max-height: 225px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scroll-behavior: smooth;
+}
+.cs-user-room-messages::-webkit-scrollbar {
+  height: 4px;
+  width: 5px;
+  background: transparent;
+}
+.cs-user-room-messages::-webkit-scrollbar-thumb {
+  background: #ffd7c2;
+  border-radius: 4px;
+}
+
+/* Bubble with tail */
+.msg-bubble {
+  padding: 9px 15px 11px 16px;
+  border-radius: 14px 15px 14px 12px;
+  font-size: 1.04rem;
+  max-width: 85%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: relative;
+  word-break: break-word;
+  background: #fff;
+  box-shadow: 0 2px 9px #e8e8e8a7;
+  transition: background 0.14s;
+}
+.msg-bubble.user {
+  background: linear-gradient(120deg,#e2ffe1 72%,#fff 100%);
+  color: #246c29;
+  align-self: flex-end;
+  border-bottom-right-radius: 7px;
+}
+.msg-bubble.user:after {
+  content: '';
+  position: absolute;
+  right: -9px;
+  bottom: 10px;
+  width: 13px;
+  height: 13px;
+  background: linear-gradient(120deg,#e2ffe1 72%,#fff 100%);
+  border-radius: 0 0 9px 0;
+  z-index: 0;
+}
+.msg-bubble.admin {
+  background: linear-gradient(120deg,#f4f4fc 72%,#fff 100%);
+  color: #4152a1;
+  align-self: flex-start;
+  border-bottom-left-radius: 7px;
+}
+.msg-bubble.admin:after {
+  content: '';
+  position: absolute;
+  left: -9px;
+  bottom: 10px;
+  width: 13px;
+  height: 13px;
+  background: linear-gradient(120deg,#f4f4fc 72%,#fff 100%);
+  border-radius: 0 0 0 9px;
+  z-index: 0;
+}
+
+.msg-meta {
+  font-size: 0.90rem;
+  opacity: 0.7;
+  display: flex;
+  gap: 11px;
+  margin-bottom: 3px;
+  font-weight: 500;
+}
+.msg-content {
+  font-size: 1.07rem;
+  z-index: 1;
+}
+
+.cs-user-room-input {
+  display: flex;
+  gap: 10px;
+  margin-top: 9px;
+}
+.cs-user-room-input input {
+  flex: 1;
+  padding: 9px 14px;
+  border-radius: 8px;
+  border: 1.5px solid #ffd7c2;
+  font-size: 1rem;
+  background: #fffaf6;
+  transition: border 0.13s, box-shadow 0.11s;
+}
+.cs-user-room-input input:focus {
+  border: 1.6px solid #ff6834;
+  box-shadow: 0 2px 8px #ff683423;
+}
+.cs-user-room-input button {
+  padding: 9px 17px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(90deg,#ff6834 80%,#ffa971 120%);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 1rem;
+  box-shadow: 0 2px 8px #ff683423;
+  transition: background 0.17s, box-shadow 0.13s, opacity 0.13s;
+}
+.cs-user-room-input button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.cs-user-room-input button:hover:not(:disabled) {
+  filter: brightness(1.06) contrast(1.08);
+}
+.cs-user-room-closed {
+  margin-top: 20px;
+  color: #e2541c;
+  background: #fff7f4;
+  border-radius: 10px;
+  font-weight: 600;
+  text-align: center;
+  padding: 14px 11px;
+  font-size: 1.03rem;
+  line-height: 1.45;
+}
+
+/* Responsive */
+@media (max-width: 650px) {
+  .cs-user-room-box { width: 99vw; }
+  .cs-user-room-header { font-size: 1rem; }
+  .cs-user-room-body { padding: 9px 2vw 7px 3vw; }
+  .cs-user-room-messages { max-height: 46vw; }
+}

@@ -1,0 +1,135 @@
+.header {
+  min-height: 34vw;
+  max-height: 430px;
+  width: 100vw;
+  max-width: 100%;
+  margin: 36px auto 44px auto;
+  border-radius: 32px;
+  position: relative;
+  background: linear-gradient(
+      100deg,
+      rgba(255, 85, 51, 0.13) 0%,
+      rgba(255, 194, 180, 0.17) 100%
+    ),
+    url("/header_img.png") center/cover no-repeat;
+  box-shadow: 0 8px 42px rgba(255, 90, 49, 0.09),
+    0 1px 7px rgba(30, 35, 90, 0.06);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  z-index: 1; /* <-- BIASANYA HEADER Z-INDEX RENDAH */
+}
+
+.header:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(28, 29, 41, 0.18) 18%,
+    rgba(220, 90, 49, 0.1) 100%
+  );
+  z-index: 1;
+  pointer-events: none;
+  /* z-index tidak terlalu tinggi, cukup 1 */
+}
+
+.header-contents {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.3vw;
+  max-width: 520px;
+  width: 40vw;
+  margin-left: 5vw;
+  margin-right: auto;
+  padding: 3vw 0 3vw 0;
+  background: transparent;
+}
+
+.header-contents h2 {
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.16), 0 1px 4px rgba(255, 60, 36, 0.07);
+  font-size: clamp(2.2rem, 4.5vw, 3.7rem);
+  line-height: 1.08;
+  letter-spacing: 0.01em;
+  margin-bottom: 0.7vw;
+}
+
+.header-contents p {
+  color: #fff;
+  font-size: clamp(1.09rem, 1.25vw, 1.2rem);
+  font-weight: 400;
+  opacity: 0.96;
+  text-shadow: 0 2px 9px rgba(30, 33, 90, 0.07);
+  margin-bottom: 1.2vw;
+}
+
+.header-contents button {
+  border: none;
+  color: #fff;
+  font-weight: 700;
+  padding: 1.2vw 2.8vw;
+  background: linear-gradient(90deg, #FF9800 70%, #8b3903 120%);
+  font-size: clamp(1.02rem, 1.14vw, 1.18rem);
+  border-radius: 50px;
+  box-shadow: 0 4px 22px rgba(255, 60, 36, 0.12);
+  letter-spacing: 0.01em;
+  margin-top: 8px;
+  cursor: pointer;
+  transition: background 0.17s, box-shadow 0.14s, transform 0.13s;
+  outline: none;
+}
+
+.header-contents button:hover,
+.header-contents button:focus {
+  background: linear-gradient(90deg,#ff8d8d 60%,#ff5027 140%);
+  box-shadow: 0 7px 32px rgba(255, 60, 36, 0.15);
+  color: #fff;
+  transform: scale(1.04) translateY(-1.5px);
+}
+
+/* RESPONSIVE */
+@media (max-width: 950px) {
+  .header-contents {
+    max-width: 80vw;
+    width: 78vw;
+    margin-left: 4vw;
+    padding: 4vw 0;
+  }
+}
+@media (max-width: 700px) {
+  .header {
+    flex-direction: column;
+    min-height: 220px;
+    border-radius: 13px;
+    margin: 16px 0 17px 0;
+    width: 99vw;
+    box-shadow: 0 4px 10px rgba(255, 60, 36, 0.05);
+    align-items: flex-end;
+  }
+  .header-contents {
+    max-width: 98vw;
+    width: 98vw;
+    margin: 0;
+    padding: 13vw 4vw 4vw 4vw;
+    align-items: flex-start;
+    gap: 2vw;
+  }
+  .header-contents h2 {
+    font-size: 1.3rem;
+  }
+  .header-contents p {
+    font-size: 0.97rem;
+  }
+}
+
+/* ===== MODAL LOGIN HARUS Z-INDEX TINGGI ===== */
+.login-modal, .login-popup, .popup-bg, .modal-bg {
+  position: fixed !important;
+  z-index: 9999 !important;
+}

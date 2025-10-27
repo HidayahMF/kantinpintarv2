@@ -1,0 +1,306 @@
+.table-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 50px;
+  width: 100%;
+}
+
+.table-card {
+  width: 95%;
+  max-width: 900px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 5px 28px rgba(255, 100, 36, 0.11), 0 0.5px 2px rgba(0,0,0,0.04);
+  padding: 34px 32px 34px 32px;
+  margin-bottom: 40px;
+}
+
+.table-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 22px;
+  color: #232324;
+  letter-spacing: 0.04em;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.modern-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 8px rgba(255, 100, 36, 0.07);
+  overflow: hidden;
+  font-size: 1rem;
+}
+
+.modern-table th, .modern-table td {
+  padding: 16px 12px;
+  font-size: 1rem;
+  text-align: left;
+}
+
+.modern-table th {
+  background: #fef9f7;
+  font-weight: 700;
+  color: #ff5027;
+  border-bottom: 2px solid #ffe5d1;
+  letter-spacing: 0.03em;
+  font-size: 1.07rem;
+}
+
+.modern-table tr {
+  border-bottom: 1.2px solid #f9eae3;
+  transition: background 0.17s;
+}
+
+.modern-table tr:hover {
+  background: #fff6f2;
+}
+
+.table-img {
+  width: 82px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1.6px solid #ffe4d2;
+  box-shadow: 0 1px 8px rgba(255, 90, 36, 0.09);
+  background: #fafcff;
+  display: flex;
+}
+
+.price-tag {
+  background: #fff3eb;
+  color: #ff6a23;
+  font-weight: 700;
+  padding: 7px 16px;
+  border-radius: 22px;
+  font-size: 1rem;
+  border: 1.2px solid #ffd8c1;
+  letter-spacing: 0.03em;
+  display: inline-block;
+  min-width: 55px;
+  text-align: center;
+}
+
+.icon-btn {
+  border: none;
+  background: transparent;
+  padding: 7px 9px;
+  margin: 0 3px;
+  cursor: pointer;
+  border-radius: 8px;
+  font-size: 1.21rem;
+  transition: background 0.12s, color 0.12s;
+  display: inline-flex;
+  align-items: center;
+}
+
+.icon-btn.edit {
+  color: #ff752b;
+  transition: color 0.12s;
+}
+.icon-btn.edit:hover {
+  background: #ffe3d0;
+  color: #fff;
+  background: linear-gradient(90deg,#ff4523 60%,#fd934c 120%);
+}
+
+.icon-btn.delete {
+  color: #ff4a55;
+  font-size: 1.35rem;
+}
+.icon-btn.delete:hover {
+  background: #fff3f1;
+  color: #fff;
+  background: linear-gradient(90deg,#ff8d8d 60%,#ff5027 140%);
+}
+.edit-modal {
+  position: fixed;
+  z-index: 1010;
+  left: 0; top: 0; right: 0; bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(34,36,50,0.17);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeInModal 0.2s;
+}
+
+@keyframes fadeInModal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Modal Card */
+.edit-box {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 12px 40px #ff50271a, 0 2px 14px #323a4434;
+  padding: 38px 36px 32px 36px;
+  min-width: 350px;
+  max-width: 97vw;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  animation: popInModal 0.18s;
+}
+
+@keyframes popInModal {
+  from { transform: scale(0.97) translateY(18px); opacity: 0.7;}
+  to { transform: scale(1) translateY(0); opacity: 1;}
+}
+
+.edit-box h3 {
+  margin-bottom: 10px;
+  color: #ff5027;
+  font-size: 1.23rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  text-align: center;
+}
+
+.edit-box input[type="text"],
+.edit-box input[type="number"],
+.edit-box select {
+  width: 100%;
+  padding: 13px 15px;
+  margin-bottom: 5px;
+  border-radius: 10px;
+  border: 1.3px solid #f9e7d7;
+  background: #fafbfc;
+  font-size: 1.04rem;
+  color: #222;
+  outline: none;
+  transition: border 0.14s;
+  text-align: center;   
+  font-weight: 500;
+  box-shadow: 0 1px 7px #ffd6bb13;
+}
+.edit-box input[type="text"]:focus,
+.edit-box input[type="number"]:focus,
+.edit-box select:focus {
+  border-color: #ff5027;
+}
+
+.file-label {
+  width: 100%;
+  display: block;
+  color: #ff7a3b;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;   
+  background: #fff3eb;
+  border-radius: 9px;
+  padding: 12px 0 12px 15px;
+  margin: 10px 0 0 0;
+  border: 1px solid #ffd8c1;
+  transition: background 0.14s, border 0.14s, color 0.13s;
+}
+.file-label:hover {
+  background: linear-gradient(90deg, #ffd8c1 50%, #ffede0 100%);
+  color: #fff;
+}
+
+.edit-preview-img {
+  margin: 16px 0 7px 0;
+  width: 120px;
+  height: 96px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1.5px solid #ffcd9f;
+  box-shadow: 0 1px 12px #ff502714;
+  background: #fff6ee;
+}
+
+.edit-actions {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.edit-actions button {
+  padding: 12px 32px;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 9px;
+  border: none;
+  outline: none;
+  background: linear-gradient(90deg, #ffe5d1 60%, #ffede0 100%);
+  color: #ff5027;
+  box-shadow: 0 1px 7px #ff502715;
+  transition: background 0.14s, color 0.14s, transform 0.12s;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+}
+.edit-actions button:hover {
+  background: linear-gradient(90deg, #ff5027 60%, #fdbe7c 160%);
+  color: #fff;
+  transform: scale(1.045) translateY(-1.5px);
+}
+
+.stock-tag {
+  background: #f2f8fd;
+  color: #2496ff;
+  font-weight: 700;
+  padding: 6px 13px;
+  border-radius: 16px;
+  font-size: 1rem;
+  border: 1.2px solid #cce4ff;
+  letter-spacing: 0.02em;
+  display: inline-block;
+  min-width: 44px;
+  text-align: center;
+}
+.stock-tag.out-of-stock {
+  background: #fff3f1;
+  color: #ff2828;
+  border: 1.2px solid #ffd1d1;
+  font-weight: 800;
+}
+.edit-stock-input {
+  background: #f9faff;
+  border: 1.2px solid #ffe5d1;
+  border-radius: 10px;
+  font-size: 1.04rem;
+  font-weight: 600;
+  color: #1b2a2f;
+  padding: 13px 15px;
+  text-align: center;
+  margin-bottom: 8px;
+  transition: border 0.13s;
+}
+.edit-stock-input:focus {
+  border: 1.4px solid #ff5027;
+  background: #fff;
+}
+
+
+@media (max-width:500px) {
+  .edit-box {
+    min-width: unset;
+    width: 95vw;
+    padding: 22px 8vw 18px 8vw;
+  }
+  .edit-preview-img {
+    width: 84px;
+    height: 70px;
+  }
+}
+@media (max-width:750px) {
+  .table-card { padding: 12px 2vw 10px 2vw; }
+  .modern-table { min-width: 420px; font-size: 0.97rem; }
+  .table-title { font-size: 1.1rem;}
+  .modern-table th, .modern-table td { padding: 10px 5px; }
+}

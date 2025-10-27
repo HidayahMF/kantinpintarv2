@@ -1,0 +1,28 @@
+.verify {
+  min-height: 50vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Inter', Arial, sans-serif;
+}
+.spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #ff5027;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+.spinner-circle {
+  border: 4px solid #ffe6db;
+  border-top: 4px solid #ff5027;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  margin-bottom: 14px;
+  animation: spin 1.1s linear infinite;
+}
+@keyframes spin {
+  0% { transform: rotate(0);}
+  100% { transform: rotate(360deg);}
+}

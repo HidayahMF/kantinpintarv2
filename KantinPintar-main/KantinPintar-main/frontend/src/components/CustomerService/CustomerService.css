@@ -1,0 +1,234 @@
+.cs-container {
+  max-width: 600px;
+  margin: 36px auto 40px;
+  padding: 24px 12px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 24px #e3e7ed33;
+}
+
+.cs-hero {
+  text-align: center;
+  margin-bottom: 30px;
+}
+.cs-hero h1 {
+  color: #ff6834;
+  font-size: 2rem;
+  margin-bottom: 7px;
+}
+.cs-hero p {
+  color: #545454;
+}
+
+.cs-section {
+  margin-bottom: 28px;
+}
+
+.cs-faq {
+  border-radius: 8px;
+  overflow: hidden;
+}
+.cs-faq-item {
+  background: #f7f7fb;
+  border-bottom: 1px solid #ececf4;
+  padding: 13px 16px;
+  cursor: pointer;
+  transition: background 0.17s;
+}
+.cs-faq-item.active, .cs-faq-item:hover {
+  background: #fff3ed;
+}
+.cs-faq-q {
+  font-weight: 600;
+  color: #2d3142;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.cs-faq-a {
+  color: #595959;
+  margin-top: 8px;
+  font-size: 0.98rem;
+}
+
+.cs-contact-info ul {
+  padding-left: 18px;
+  color: #31343b;
+  font-size: 1rem;
+}
+.cs-contact-info li {
+  margin-bottom: 7px;
+}
+
+.cs-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.cs-form input,
+.cs-form textarea {
+  padding: 11px 13px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  font-size: 1rem;
+  outline: none;
+  background: #f9f9f9;
+  transition: border 0.14s;
+}
+.cs-form input:focus,
+.cs-form textarea:focus {
+  border: 1.5px solid #ff6834;
+  background: #fff;
+}
+.cs-form button {
+  background: #ff6834;
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  padding: 11px 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.cs-form button[disabled] {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.cs-success {
+  color: #25bf49;
+  margin-top: 7px;
+  font-size: 0.98rem;
+  font-weight: 500;
+  text-align: center;
+}
+@media (max-width: 600px) {
+  .cs-container { padding: 8px; }
+  .cs-hero h1 { font-size: 1.32rem; }
+}
+.cs-container {
+  max-width: 680px;
+  margin: 40px auto;
+  background: #fff;
+  padding: 32px 18px;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px #ececec50;
+}
+.cs-hero h1 {
+  color: #ff6834;
+  font-size: 2rem;
+}
+.cs-hero p {
+  color: #2d3142;
+  font-size: 1.08rem;
+  margin-bottom: 10px;
+}
+.cs-section {
+  margin: 24px 0;
+}
+.cs-section h2 {
+  margin-bottom: 10px;
+  font-size: 1.14rem;
+  color: #232323;
+}
+.cs-faq-item {
+  padding: 13px 16px;
+  margin-bottom: 9px;
+  border-radius: 9px;
+  background: #fafbff;
+  border: 1px solid #f4f4f4;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.15s;
+}
+.cs-faq-item.active, .cs-faq-item:focus {
+  background: #fff7f3;
+  border-color: #ff6834;
+}
+.cs-faq-q {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.cs-faq-a {
+  margin-top: 6px;
+  color: #444;
+}
+.cs-contact-info ul {
+  list-style: none;
+  padding: 0;
+  color: #36373d;
+}
+.cs-contact-info li {
+  margin-bottom: 6px;
+}
+.cs-form {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+.cs-form input, .cs-form textarea {
+  border-radius: 7px;
+  border: 1px solid #ececec;
+  padding: 11px 14px;
+  font-size: 1rem;
+  outline: none;
+}
+.cs-form input:focus, .cs-form textarea:focus {
+  border-color: #ff6834;
+}
+.cs-form button {
+  background: #ff6834;
+  color: #fff;
+  font-weight: bold;
+  border: none;
+  border-radius: 7px;
+  padding: 11px;
+  cursor: pointer;
+  font-size: 1.08rem;
+  transition: background 0.2s;
+}
+.cs-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.cs-success {
+  color: #25bf49;
+  margin-top: 7px;
+}
+.cs-error {
+  color: #ef4141;
+  margin-top: 7px;
+}
+.cs-roomchat-btn {
+  background: #ff6834;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 11px 27px;
+  font-size: 1.09rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: background 0.15s;
+  box-shadow: 0 1px 7px #ff683414;
+}
+.cs-roomchat-btn:hover {
+  background: #ff894b;
+}
+.cs-room-back-btn {
+  margin-bottom: 18px;
+  background: #fff6f2;
+  color: #ff6834;
+  border: 1px solid #ff6834;
+  font-weight: 600;
+  border-radius: 7px;
+  font-size: 1rem;
+  padding: 7px 16px;
+  cursor: pointer;
+  transition: background 0.14s, color 0.14s;
+}
+.cs-room-back-btn:hover {
+  background: #ff6834;
+  color: #fff;
+}

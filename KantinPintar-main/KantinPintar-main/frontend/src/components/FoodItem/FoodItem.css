@@ -1,0 +1,244 @@
+.food-item {
+  width: 100%;
+  max-width: 320px;
+  margin: auto;
+  border-radius: 18px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 6px 30px #2526610e, 0 1.5px 12px #ff502715;
+  transition: 0.23s cubic-bezier(.23,1.07,.58,.93), box-shadow 0.2s, transform 0.15s, background 0.12s;
+  animation: fadeIn 1s;
+}
+
+.food-item:hover {
+  box-shadow: 0 14px 38px #ff501813, 0 2px 16px #1f4e9611;
+  transform: translateY(-4px) scale(1.018);
+  background: linear-gradient(120deg, #fff7f0 0%, #fff 70%);
+}
+
+.food-item-img-container {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  height: 155px;
+  border-radius: 18px 18px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f7fafd;
+}
+
+.food-item-image {
+  width: 100%;
+  height: 155px;
+  object-fit: cover;
+  border-radius: 18px 18px 0 0;
+  background: #f7fafd;
+}
+
+.food-item-stock-badge {
+  position: absolute;
+  top: 13px;
+  right: 17px;
+  background: #e3f0ff;
+  color: #2395ff;
+  font-size: 0.99rem;
+  font-weight: 700;
+  padding: 5px 15px 5px 13px;
+  border-radius: 15px 13px 14px 18px;
+  border: 1.2px solid #b1e3ff;
+  box-shadow: 0 2px 8px #5f8fff11;
+  letter-spacing: 0.02em;
+  transition: background 0.15s, color 0.15s;
+  z-index: 2;
+}
+.food-item-stock-badge.stock-out {
+  background: #fff3f1;
+  color: #ff3838;
+  border: 1.4px solid #ffbaba;
+}
+
+.food-item-info {
+  padding: 17px 17px 19px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.food-item-name-rating {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.food-item-name-rating p {
+  font-size: 19px;
+  font-weight: 700;
+  margin: 0;
+  color: #212224;
+  letter-spacing: 0.01em;
+  text-shadow: 0 1px 4px #1c1b1309;
+}
+
+.food-item-name-rating img {
+  width: 67px;
+  height: 15px;
+}
+
+.food-item-desc {
+  color: #6c757d;
+  font-size: 13px;
+  margin-bottom: 6px;
+  min-height: 18px;
+  line-height: 1.22;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.food-item-price {
+  color: #ff5027;
+  font-size: 21px;
+  font-weight: 800;
+  margin: 7px 0 12px 0;
+  letter-spacing: 0.01em;
+}
+
+.food-item-cart-action {
+  margin-top: 7px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Tombol bulat tipis oranye dengan plus */
+.add-btn-glow.slim {
+  border: none;
+  outline: none;
+  background: linear-gradient(100deg, #ff5027 75%, #fd934c 140%);
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  box-shadow: 0 3px 12px #ff502723;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.16s, transform 0.13s, box-shadow 0.16s;
+  position: relative;
+  font-size: 1rem;
+  padding: 0;
+}
+.add-btn-glow.slim:hover:not(:disabled) {
+  background: linear-gradient(100deg, #fd934c 60%, #ff5027 130%);
+  transform: scale(1.08);
+  box-shadow: 0 6px 20px #ff502733;
+}
+.add-btn-glow.slim:disabled {
+  opacity: 0.5;
+  background: #eee;
+  cursor: not-allowed;
+}
+
+/* Ikon + dan - hanya pakai CSS */
+.icon-plus, .icon-minus {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  position: relative;
+}
+.icon-plus:before, .icon-plus:after,
+.icon-minus:before {
+  content: "";
+  position: absolute;
+  background: #fff;
+  border-radius: 1.5px;
+  transition: background 0.14s;
+}
+.icon-plus:before {
+  top: 8px; left: 4px; right: 4px; height: 2.5px; /* horizontal */
+}
+.icon-plus:after {
+  left: 8px; top: 4px; bottom: 4px; width: 2.5px; /* vertical */
+}
+.icon-minus:before {
+  top: 8px; left: 4px; right: 4px; height: 2.5px;
+}
+
+/* Counter area */
+.food-item-counter-modern {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f8fafc;
+  border-radius: 20px;
+  padding: 2px 12px 2px 9px;
+  box-shadow: 0 1px 7px #ff502713;
+}
+
+.counter-btn-modern {
+  border: 1.2px solid #ff5027;
+  background: #fff;
+  padding: 0;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border 0.15s, background 0.14s, transform 0.14s;
+}
+.counter-btn-modern:hover:not(:disabled) {
+  background: #fff7f0;
+  border-color: #fd934c;
+  transform: scale(1.13);
+}
+.counter-btn-modern:active:not(:disabled) {
+  background: #ffefd9;
+}
+.counter-btn-modern:disabled {
+  background: #eee;
+  opacity: 0.6;
+  cursor: not-allowed;
+  border: 1.2px solid #eee;
+}
+
+/* Khusus: warna hijau untuk + di counter */
+.counter-btn-modern .icon-plus:before,
+.counter-btn-modern .icon-plus:after {
+  background: #27c16e;
+}
+.counter-btn-modern .icon-minus:before {
+  background: #ff5027;
+}
+
+.counter-qty-modern {
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: #242324;
+  min-width: 20px;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .food-item {
+    max-width: 96vw;
+  }
+  .food-item-img-container, .food-item-image {
+    height: 110px;
+  }
+  .food-item-info {
+    padding: 10px 6px 11px 8px;
+  }
+  .food-item-cart-action {
+    margin-top: 7px;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(14px);}
+  to   { opacity: 1; transform: translateY(0);}
+}

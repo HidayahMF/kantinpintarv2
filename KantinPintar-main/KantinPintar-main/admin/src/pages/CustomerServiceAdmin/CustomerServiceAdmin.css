@@ -1,0 +1,169 @@
+.cs-admin-container {
+  max-width: 760px;
+  margin: 32px auto;
+  background: #fff;
+  border-radius: 15px;
+  padding: 26px 18px 36px;
+  box-shadow: 0 2px 20px #ff683425, 0 1px 8px #c2c2c230;
+}
+
+.cs-admin-container h2 {
+  font-size: 1.5rem;
+  color: #ff6834;
+  margin-bottom: 22px;
+  letter-spacing: 0.01em;
+  font-weight: bold;
+}
+
+.cs-admin-loading {
+  color: #ff6834;
+  font-style: italic;
+  margin: 18px 0;
+}
+
+.cs-admin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.cs-admin-msg {
+  background: #f9fafc;
+  border: 1.5px solid #ffede0;
+  border-radius: 12px;
+  padding: 19px 18px 17px 18px;
+  box-shadow: 0 1px 8px #ff68341a;
+  position: relative;
+  transition: background 0.14s, border 0.14s;
+}
+
+.cs-admin-msg.done {
+  background: #f1f6f3;
+  border-color: #d6ead9;
+  opacity: 0.72;
+}
+
+.cs-admin-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 7px;
+  flex-wrap: wrap;
+}
+.cs-admin-email {
+  color: #53627a;
+  font-size: 0.98rem;
+  font-weight: 500;
+}
+.cs-admin-status {
+  padding: 3px 10px;
+  border-radius: 7px;
+  margin-left: auto;
+  margin-right: 7px;
+  font-size: 0.94rem;
+  font-weight: bold;
+}
+.cs-admin-status.open {
+  background: #ffe9df;
+  color: #ff6834;
+}
+.cs-admin-status.done {
+  background: #e2fbe2;
+  color: #18ad35;
+}
+.cs-admin-time {
+  color: #878a97;
+  font-size: 0.96rem;
+}
+
+.cs-admin-body {
+  margin: 10px 0 7px 0;
+  color: #262e37;
+  font-size: 1.06rem;
+  white-space: pre-line;
+}
+
+.cs-admin-done-btn {
+  background: #ff6834;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  padding: 7px 19px;
+  font-size: 0.99rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 2px;
+  transition: background 0.14s;
+}
+.cs-admin-done-btn:hover:not([disabled]) {
+  background: #fe8b54;
+}
+.cs-admin-done-btn[disabled] {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.cs-admin-pagination {
+  margin-top: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 13px;
+}
+
+.icon-btn {
+  background: #fff4ed;
+  border: 1.2px solid #fdbe7c;
+  border-radius: 7px;
+  font-size: 1.07rem;
+  padding: 4px 13px;
+  cursor: pointer;
+  transition: background 0.13s, color 0.13s, border 0.13s;
+  color: #ff5027;
+  outline: none;
+  min-width: 44px;
+}
+
+.icon-btn[disabled] {
+  cursor: not-allowed;
+  opacity: 0.5;
+  background: #f2f2f2;
+  border-color: #e3e3e3;
+  color: #bcbcbc;
+}
+
+.icon-btn:hover:not([disabled]) {
+  background: #ff5027;
+  color: #fff;
+  border-color: #ff5027;
+}
+
+.notif-badge {
+  position: absolute;
+  right: 22px;
+  top: 20px;
+  min-width: 25px;
+  height: 22px;
+  padding: 0 7px;
+  background: #ff4d4d;
+  color: #fff;
+  border-radius: 13px;
+  font-weight: 700;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 7px #e45a5a33;
+  z-index: 2;
+  border: 2.2px solid #fff;
+}
+
+
+@media (max-width: 800px) {
+  .cs-admin-container {
+    padding: 12px 5px 20px;
+  }
+  .cs-admin-msg {
+    padding: 11px 7px 13px 10px;
+  }
+}

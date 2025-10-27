@@ -1,0 +1,297 @@
+.desc-review-wrapper {
+  max-width: 680px;
+  margin: 32px auto;
+  padding: 32px 24px 24px 24px;
+  background: #fff;
+  color: #22223b;
+  border-radius: 22px;
+  box-shadow: 0 6px 36px rgba(255, 131, 0, 0.11);
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  position: relative;
+  transition: box-shadow 0.23s;
+}
+.desc-review-wrapper:hover {
+  box-shadow: 0 10px 45px rgba(255, 131, 0, 0.17);
+}
+
+.desc-review-back {
+  background: none;
+  border: none;
+  color: #ff8300;
+  font-size: 17px;
+  cursor: pointer;
+  margin-bottom: 18px;
+  padding-left: 2px;
+  transition: color 0.18s, transform 0.18s;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+.desc-review-back:hover {
+  color: #f43f5e;
+  transform: translateX(-2px);
+}
+
+.desc-review-content {
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+@media (max-width: 650px) {
+  .desc-review-content {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+}
+
+.desc-review-img {
+  width: 165px;
+  height: 165px;
+  object-fit: cover;
+  border-radius: 16px;
+  background: linear-gradient(125deg, #fff3e6 50%, #ffe9e9 100%);
+  box-shadow: 0 2px 16px rgba(255, 131, 0, 0.13);
+  border: 3px solid #ff8300;
+  transition: box-shadow 0.18s, border 0.17s;
+}
+.desc-review-img:hover {
+  box-shadow: 0 8px 24px rgba(255, 131, 0, 0.17);
+  border: 3px solid #f43f5e;
+}
+
+.desc-review-info {
+  flex: 1;
+}
+
+.desc-review-info h2 {
+  font-size: 1.55rem;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+  letter-spacing: 0.1px;
+  color: #191919;
+}
+
+.desc-review-desc {
+  color: #8d7b6e;
+  font-size: 16px;
+  margin-bottom: 16px;
+  font-weight: 500;
+  line-height: 1.52;
+}
+
+.desc-review-price {
+  color: #ff8300;
+  font-size: 21px;
+  font-weight: 800;
+  margin-top: 2px;
+  text-shadow: 0 1px 0 #fff6ee;
+}
+
+.desc-review-reviews {
+  margin-top: 28px;
+}
+
+.desc-review-reviews h3 {
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+  color: #ff8300;
+  font-weight: 600;
+  letter-spacing: 0.1px;
+  text-shadow: 0 1px 0 #fff6ee;
+}
+
+.desc-review-review {
+  background: linear-gradient(100deg, #fff6ee 80%, #ffe7ec 100%);
+  padding: 13px 17px 12px 17px;
+  border-radius: 11px;
+  margin-bottom: 11px;
+  color: #1d1b1b;
+  font-size: 15.5px;
+  box-shadow: 0 1.5px 8px rgba(255, 131, 0, 0.07);
+  border-left: 4px solid #ff8300;
+  transition: box-shadow 0.13s;
+  position: relative;
+}
+.desc-review-review strong {
+  color: #ff8300;
+  font-weight: 700;
+  text-shadow: 0 1px 0 #fff6ee;
+}
+.desc-review-review p {
+  margin: 5px 0 0 0;
+}
+.desc-review-review::after {
+  content: " ";
+  position: absolute;
+  top: 7px;
+  right: 14px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: linear-gradient(120deg, #ff8300, #f43f5e 70%);
+  opacity: 0.13;
+}
+
+.desc-review-noreview {
+  color: #f43f5e;
+  font-style: italic;
+  margin-bottom: 9px;
+  font-weight: 600;
+}
+
+.desc-review-add-review {
+  margin-top: 36px;
+  border-top: 1px dashed #ffd369;
+  padding-top: 25px;
+  animation: fadein 0.5s;
+}
+
+@keyframes fadein {
+  0% { opacity: 0; transform: translateY(18px);}
+  100% { opacity: 1; transform: none;}
+}
+
+.desc-review-form {
+  margin-top: 12px;
+  padding: 24px 17px 19px 17px;
+  background: linear-gradient(100deg, #f9fafc 80%, #fff0e7 100%);
+  border-radius: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 2px 12px rgba(255, 131, 0, 0.10);
+  border: 1.5px solid #ffedc8;
+  transition: box-shadow 0.15s;
+  animation: fadein 0.55s;
+}
+
+.desc-review-form h4 {
+  color: #f43f5e;
+  margin: 0 0 3px 0;
+  font-size: 1.09rem;
+  font-weight: 700;
+  letter-spacing: 0.1px;
+}
+
+.desc-review-form label {
+  color: #22223b;
+  font-size: 15.4px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+}
+.desc-review-form select {
+  margin-left: 13px;
+  padding: 2.5px 12px;
+  border-radius: 6px;
+  border: 1.5px solid #ffd369;
+  background: #fff;
+  color: #ff8300;
+  font-size: 15.5px;
+  font-weight: 700;
+  transition: border 0.18s, box-shadow 0.15s;
+  box-shadow: 0 1.5px 6px rgba(255, 131, 0, 0.05);
+}
+.desc-review-form select:focus {
+  outline: none;
+  border: 1.5px solid #f43f5e;
+  background: #fff9f0;
+}
+
+.desc-review-form textarea {
+  border-radius: 8px;
+  padding: 11px;
+  border: 1.5px solid #ffd369;
+  background: #fff;
+  color: #22223b;
+  min-height: 70px;
+  font-size: 15.2px;
+  transition: border 0.16s, box-shadow 0.13s;
+  resize: vertical;
+  font-family: inherit;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  box-shadow: 0 1.5px 6px rgba(255, 131, 0, 0.04);
+}
+.desc-review-form textarea:focus {
+  outline: none;
+  border: 1.5px solid #ff8300;
+  background: #fff9f0;
+}
+
+.desc-review-form button {
+  align-self: flex-end;
+  margin-top: 10px;
+  padding: 9px 29px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #ff8300, #f43f5e 90%);
+  color: #fff;
+  border: none;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(255, 131, 0, 0.13);
+  transition: background 0.17s, box-shadow 0.13s, transform 0.12s;
+  letter-spacing: 0.2px;
+}
+.desc-review-form button:hover, .desc-review-form button:focus {
+  background: linear-gradient(90deg, #f43f5e 30%, #ff8300 100%);
+  box-shadow: 0 6px 18px rgba(255, 131, 0, 0.17);
+  transform: translateY(-1.5px) scale(1.025);
+}
+
+.desc-review-error {
+  color: #f43f5e;
+  font-size: 14.2px;
+  margin-bottom: -3px;
+  font-weight: 600;
+  letter-spacing: 0.08px;
+  background: #ffe7eb;
+  border-radius: 4px;
+  padding: 3px 8px;
+  display: inline-block;
+  margin-top: 2px;
+}
+
+.desc-review-success {
+  color: #16c784;
+  font-size: 14.2px;
+  margin-bottom: -3px;
+  font-weight: 600;
+  letter-spacing: 0.08px;
+  background: #e7fff4;
+  border-radius: 4px;
+  padding: 3px 8px;
+  display: inline-block;
+  margin-top: 2px;
+}
+
+.desc-review-info {
+  color: #7c7a7a;
+  font-size: 15px;
+  margin-top: 17px;
+  padding: 7px 0 3px 0;
+  border-radius: 7px;
+  background: #fafafa;
+  font-weight: 600;
+}
+
+.simple-stock-badge {
+  display: inline-block;
+  padding: 4px 16px;
+  border-radius: 22px;
+  font-weight: bold;
+  font-size: 18px;
+  background: #e5f2ff;     /* Biru muda */
+  color: #2196f3;           /* Biru */
+  box-shadow: 0 1.5px 6px rgba(33, 150, 243, 0.06);
+  letter-spacing: 0.02em;
+  transition: background 0.18s, color 0.18s;
+}
+
+.simple-stock-badge.out {
+  background: #fff1f1;      /* Merah muda */
+  color: #f44336;           /* Merah */
+}
