@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./List.css";
 import { toast } from "react-toastify";
-import API from "../../api"; // pastikan path sesuai dengan struktur folder kamu
+import API from "../../api"; // pastikan path sesuai struktur folder kamu
 
 const FOODS_PER_PAGE = 5;
 
@@ -17,8 +17,8 @@ const List = () => {
   });
   const [editImage, setEditImage] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
-
   const [currentPage, setCurrentPage] = useState(1);
+
   const totalPages = Math.ceil(list.length / FOODS_PER_PAGE);
 
   // Urutkan berdasarkan waktu terbaru
@@ -34,17 +34,17 @@ const List = () => {
   useEffect(() => {
     fetchList();
     fetchCategories();
-    // eslint-disable-next-line
   }, []);
 
   // 🔹 Ambil daftar makanan
   const fetchList = async ({ keepPage = false } = {}) => {
     try {
       const res = await API.get("/food/list");
-      setList(res.data.data || []);
+      setList(res.data.data || []); // pastikan ambil dari data
       if (!keepPage) setCurrentPage(1);
     } catch (err) {
-      toast.error("Server error");
+      console.error("Fetch foods error:", err);
+      toast.error("Server error while fetching foods");
     }
   };
 
@@ -52,8 +52,9 @@ const List = () => {
   const fetchCategories = async () => {
     try {
       const res = await API.get("/category/list");
-      setCategories(res.data.data || []);
-    } catch {
+      setCategories(res.data.data || []); // gunakan res.data.data
+    } catch (err) {
+      console.error("Fetch categories error:", err);
       toast.error("Failed to fetch categories");
     }
   };
@@ -67,10 +68,11 @@ const List = () => {
         toast.success("Food removed");
         fetchList({ keepPage: true });
       } else {
-        toast.error("Failed to remove food");
+        toast.error(res.data.message || "Failed to remove food");
       }
-    } catch {
-      toast.error("Server error");
+    } catch (err) {
+      console.error("Remove food error:", err);
+      toast.error("Server error while removing food");
     }
   };
 
@@ -83,7 +85,9 @@ const List = () => {
       price: item.price,
       stock: item.stock !== undefined ? item.stock : "",
     });
-    setPreviewImage(`${API.defaults.baseURL.replace("/api", "")}/uploads/${item.image}`);
+    setPreviewImage(
+      `${API.defaults.baseURL.replace("/api", "")}/uploads/${item.image}`
+    );
     setEditImage(null);
   };
 
@@ -116,8 +120,9 @@ const List = () => {
       } else {
         toast.error(res.data.message || "Update failed");
       }
-    } catch {
-      toast.error("Server error");
+    } catch (err) {
+      console.error("Update food error:", err);
+      toast.error("Server error while updating food");
     }
   };
 
@@ -155,7 +160,10 @@ const List = () => {
                 <tr key={item._id}>
                   <td>
                     <img
-                      src={`${API.defaults.baseURL.replace("/api", "")}/uploads/${item.image}`}
+                      src={`${API.defaults.baseURL.replace(
+                        "/api",
+                        ""
+                      )}/uploads/${item.image}`}
                       alt={item.name}
                       className="table-img"
                     />
@@ -196,18 +204,13 @@ const List = () => {
           </table>
         </div>
 
-        {/* 🔹 Pagination */}
+        {/* Pagination */}
         {list.length > FOODS_PER_PAGE && (
-          <div
-            className="pagination-controls"
-            style={{ textAlign: "center", margin: "20px 0" }}
-          >
+          <div className="pagination-controls">
             <button
               className="icon-btn"
               onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
               disabled={currentPage === 1}
-              style={{ marginRight: 8, opacity: currentPage === 1 ? 0.5 : 1 }}
-              title="Previous"
             >
               ⬅️
             </button>
@@ -216,15 +219,8 @@ const List = () => {
             </span>
             <button
               className="icon-btn"
-              onClick={() =>
-                setCurrentPage((p) => Math.min(p + 1, totalPages))
-              }
+              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
               disabled={currentPage === totalPages}
-              style={{
-                marginLeft: 8,
-                opacity: currentPage === totalPages ? 0.5 : 1,
-              }}
-              title="Next"
             >
               ➡️
             </button>
@@ -232,7 +228,7 @@ const List = () => {
         )}
       </div>
 
-      {/* 🔹 Modal Edit */}
+      {/* Modal Edit */}
       {editItem && (
         <div className="edit-modal">
           <div className="edit-box">
@@ -278,11 +274,6 @@ const List = () => {
               onChange={(e) =>
                 setFormData({ ...formData, stock: e.target.value })
               }
-              style={{
-                background: "#f9faff",
-                border: "1.2px solid #ffe5d1",
-                marginBottom: 5,
-              }}
             />
             <label className="file-label">
               <span>Upload new image</span>

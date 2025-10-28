@@ -4,7 +4,7 @@ import { StoreContext } from "../../context/StoreContextProvider";
 import axios from "axios";
 import "./LoginPopup.css";
 
-// Buat instance axios agar rapi dan tidak perlu tulis url berulang-ulang
+// Axios instance
 const API = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:4000",
 });
@@ -13,13 +13,8 @@ const LoginPopup = ({ setShowLogin }) => {
   const navigate = useNavigate();
   const { login } = useContext(StoreContext);
 
-  const [currState, setCurrState] = useState("Login");
-  const [data, setData] = useState({
-    name: "",
-    email: "",
-    password: "",
-  });
-
+  const [currState, setCurrState] = useState("Login"); // "Login" | "Sign Up" | "Admin"
+  const [data, setData] = useState({ name: "", email: "", password: "" });
   const [notif, setNotif] = useState(null);
 
   const onChangeHandler = (e) => {
@@ -47,40 +42,41 @@ const LoginPopup = ({ setShowLogin }) => {
     try {
       const res = await API.post(endpoint, payload);
 
-      if (res.data.success) {
-        if (currState === "Sign Up") {
-          setCurrState("Login");
-          setNotif({
-            msg: "Register berhasil! Silakan login.",
-            type: "success",
-          });
-          setTimeout(() => setNotif(null), 2500);
-          return;
-        }
-
-        if (res.data.isAdmin) {
-          setNotif({
-            msg: "Anda Berhasil Login sebagai Admin!",
-            type: "admin",
-          });
-          setTimeout(() => {
-            window.location.href = `http://localhost:5174?token=${res.data.token}&isAdmin=true`;
-          }, 1000);
-        } else {
-          login(res.data.token, false);
-          setNotif({ msg: "Anda Berhasil Login sebagai User!", type: "user" });
-          setTimeout(() => {
-            setShowLogin(false);
-            navigate("/");
-          }, 1000);
-        }
-      } else {
+      if (!res.data.success) {
         setNotif({
           msg: res.data.message || "Login/Register failed",
           type: "error",
         });
         setTimeout(() => setNotif(null), 1800);
+        return;
       }
+
+      // REGISTER SUCCESS
+      if (currState === "Sign Up") {
+        setCurrState("Login");
+        setNotif({ msg: "Register berhasil! Silakan login.", type: "success" });
+        setTimeout(() => setNotif(null), 2500);
+        return;
+      }
+
+      // LOGIN ADMIN
+      if (currState === "Admin") {
+        localStorage.setItem("token", res.data.token); // ✅ simpan token
+        localStorage.setItem("isAdmin", "true"); // opsional flag admin
+        setNotif({ msg: "Login sebagai Admin berhasil!", type: "admin" });
+        setTimeout(() => {
+          window.location.href = "http://localhost:5174"; // token sudah di localStorage
+        }, 1000);
+        return;
+      }
+
+      // LOGIN USER
+      login(res.data.token, false); // simpan token via context + localStorage
+      setNotif({ msg: "Login sebagai User berhasil!", type: "user" });
+      setTimeout(() => {
+        setShowLogin(false);
+        navigate("/");
+      }, 1000);
     } catch (error) {
       setNotif({
         msg:

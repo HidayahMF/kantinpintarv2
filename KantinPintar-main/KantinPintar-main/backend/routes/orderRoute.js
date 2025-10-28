@@ -1,3 +1,4 @@
+// backend/routes/orderRoute.js
 import express from "express";
 import {
   placeOrder,
@@ -8,15 +9,14 @@ import {
   deleteOrder,
 } from "../controllers/orderController.js";
 import authUserMiddleware from "../middleware/authUserMiddleware.js";
-import authAdminMiddleware from "../middleware/authAdminMiddleware.js";
 
-const orderRouter = express.Router();
+const router = express.Router();
 
-orderRouter.post("/place", authUserMiddleware, placeOrder);
-orderRouter.get("/verify", verifyOrder); 
-orderRouter.get("/userorders", authUserMiddleware, userOrders);
-orderRouter.get("/list", authAdminMiddleware, listOrders);
-orderRouter.post("/status", authAdminMiddleware, updateStatus);
-orderRouter.delete("/:orderId", authAdminMiddleware, deleteOrder);
-orderRouter.get("/all", authAdminMiddleware, listOrders);
-export default orderRouter;
+router.post("/place", authUserMiddleware, placeOrder);
+router.get("/verify", verifyOrder);
+router.get("/userorders", authUserMiddleware, userOrders);
+router.get("/list", authUserMiddleware, listOrders);
+router.post("/status", authUserMiddleware, updateStatus);
+router.delete("/delete/:orderId", authUserMiddleware, deleteOrder);
+
+export default router;

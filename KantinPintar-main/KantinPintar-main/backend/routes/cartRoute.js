@@ -4,7 +4,7 @@ import {
   removeFromCart,
   getCart,
 } from "../controllers/cartController.js";
-import authUserMiddleware from "../middleware/authUserMiddleware.js"; // pastikan path dan nama file benar
+import authUserMiddleware from "../middleware/authUserMiddleware.js"; 
 
 const cartRouter = express.Router();
 
