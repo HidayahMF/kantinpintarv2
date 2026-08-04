@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Build
+dist/
+dist-ssr/
+
+# Env (secrets)
+backend/.env
+
+# Logs
+*.log
+logs/
+
+# Junk files
+bfg-1.15.0.jar
+KantinPintar-main.zip
