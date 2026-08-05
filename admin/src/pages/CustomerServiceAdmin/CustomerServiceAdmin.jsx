@@ -1,21 +1,25 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import "./CustomerServiceAdmin.css";
 import API from "../../api"; // pastikan path sesuai
 import CustomerServiceAdminRoom from "../CustomerServiceAdminRoom/CustomerServiceAdminRoom";
+import { StoreContext } from "../../context/StoreContextProvider";
 
 const ROOMS_PER_PAGE = 5;
 
 const CustomerServiceAdmin = () => {
+  const { token } = useContext(StoreContext);
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedEmail, setSelectedEmail] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
 
+  const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+
   // Fetch all chat rooms
   const fetchRooms = async () => {
     setLoading(true);
     try {
-      const res = await API.get("/message/users"); // Ganti axios.get jadi API.get
+      const res = await API.get("/message/users", { headers: authHeaders });
 
       if (res.data.success) {
         const sortedRooms = [...res.data.data].sort((a, b) => {
@@ -47,7 +51,7 @@ const CustomerServiceAdmin = () => {
   const handleOpenRoom = async (email) => {
     setSelectedEmail(email);
     try {
-      await API.patch(`/message/room/${email}/admin-read`); // Ganti axios.patch jadi API.patch
+      await API.patch(`/message/room/${email}/admin-read`, {}, { headers: authHeaders });
       fetchRooms();
     } catch (error) {
       console.error("Error marking as read:", error);

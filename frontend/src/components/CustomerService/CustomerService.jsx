@@ -1,11 +1,8 @@
 import React, { useState, useContext, useEffect } from "react";
-import axios from "axios";
 import "./CustomerService.css";
 import { StoreContext } from "../../context/StoreContextProvider";
 import CustomerServiceRoom from "../CustomerServiceRoom/CustomerServiceRoom";
-
-const API_URL =
-  ("http://localhost:4000") + "/api/message";
+import API from "../../api";
 
 const faqs = [
   {
@@ -23,8 +20,7 @@ const faqs = [
 ];
 
 const CustomerService = () => {
-  const { token, user } = useContext(StoreContext);
-  const [expand, setExpand] = useState(-1);
+  const { token, user } = useContext(StoreContext);  const [expand, setExpand] = useState(-1);
   const [form, setForm] = useState({ name: "", email: "", message: "" });
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
@@ -62,10 +58,15 @@ const CustomerService = () => {
       return;
     }
 
+    if (!token) {
+      setError("Silakan login terlebih dahulu untuk mengirim pesan.");
+      return;
+    }
+
     setLoading(true);
     try {
-      await axios.post(API_URL, form, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      await API.post("/message", form, {
+        headers: { Authorization: `Bearer ${token}` },
       });
       setSent(true);
       setForm({ ...form, message: "" });

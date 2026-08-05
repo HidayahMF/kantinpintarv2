@@ -1,8 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useContext } from "react";
 import "./CustomerServiceAdminRoom.css";
 import API from "../../api"; // pastikan path sesuai struktur project kamu
+import { StoreContext } from "../../context/StoreContextProvider";
 
 const CustomerServiceAdminRoom = ({ email, onClose, onStatusChange }) => {
+  const { token } = useContext(StoreContext);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(true);
@@ -12,11 +14,15 @@ const CustomerServiceAdminRoom = ({ email, onClose, onStatusChange }) => {
   const chatEndRef = useRef(null);
   const [inputFocus, setInputFocus] = useState(false);
 
+  const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+
   // --- Ambil semua pesan di room tertentu
   const fetchMessages = async () => {
     setLoading(true);
     try {
-      const res = await API.get(`/message/room/${email}`);
+      const res = await API.get(`/message/room/${email}`, {
+        headers: authHeaders,
+      });
       if (res.data.success) setMessages(res.data.data);
     } catch (error) {
       console.error("Error fetching messages:", error);
@@ -27,7 +33,9 @@ const CustomerServiceAdminRoom = ({ email, onClose, onStatusChange }) => {
   // --- Ambil status room (open/done)
   const fetchStatus = async () => {
     try {
-      const res = await API.get(`/message/room/${email}/status`);
+      const res = await API.get(`/message/room/${email}/status`, {
+        headers: authHeaders,
+      });
       setStatus(res.data.status);
     } catch (error) {
       console.error("Error fetching status:", error);
@@ -62,7 +70,11 @@ const CustomerServiceAdminRoom = ({ email, onClose, onStatusChange }) => {
     if (!input.trim()) return;
     setSending(true);
     try {
-      await API.post(`/message/room/${email}/admin`, { message: input });
+      await API.post(
+        `/message/room/${email}/admin`,
+        { message: input },
+        { headers: authHeaders }
+      );
       setInput("");
       fetchMessages();
     } catch (error) {
@@ -74,7 +86,11 @@ const CustomerServiceAdminRoom = ({ email, onClose, onStatusChange }) => {
   // --- Tandai chat selesai
   const handleDone = async () => {
     try {
-      await API.patch(`/message/room/${email}/status`, { status: "done" });
+      await API.patch(
+        `/message/room/${email}/status`,
+        { status: "done" },
+        { headers: authHeaders }
+      );
       setStatus("done");
       if (onStatusChange) onStatusChange();
     } catch (error) {

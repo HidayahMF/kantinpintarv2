@@ -101,14 +101,14 @@ const PlaceOrder = () => {
               alert(
                 "Anda menutup pembayaran. Pesanan tetap dibuat, silakan selesaikan pembayaran lewat halaman pesanan."
               );
-              navigate("/myorders");
+              navigate("/myorder");
             },
           });
         } else if (redirect_url) {
           window.location.href = redirect_url;
         } else {
           alert("Order successfully created!");
-          navigate("/myorders");
+          navigate("/myorder");
         }
       } else {
         alert("Failed to process order.");

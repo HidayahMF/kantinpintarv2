@@ -4,7 +4,7 @@ import API from "../../api"; // ✅ gunakan API bawaan dari src/api.js
 import "./CustomerServiceRoom.css";
 
 const CustomerServiceRoom = () => {
-  const { user } = useContext(StoreContext);
+  const { user, token } = useContext(StoreContext);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(true);
@@ -16,6 +16,8 @@ const CustomerServiceRoom = () => {
 
   const email = user?.email;
 
+  const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+
   // Fetch messages dari server
   const fetchMessages = async () => {
     if (!email) {
@@ -24,7 +26,9 @@ const CustomerServiceRoom = () => {
     }
     setLoading(true);
     try {
-      const res = await API.get(`/message/room/${email}`);
+      const res = await API.get(`/message/room/${email}`, {
+        headers: authHeaders,
+      });
       if (res.data.success) setMessages(res.data.data);
     } catch (err) {
       console.error("Error fetching messages:", err);
@@ -36,11 +40,15 @@ const CustomerServiceRoom = () => {
   const fetchStatus = async () => {
     if (!email) return;
     try {
-      const res = await API.get(`/message/room/${email}/status`);
+      const res = await API.get(`/message/room/${email}/status`, {
+        headers: authHeaders,
+      });
       setStatus(res.data.status);
 
       if (res.data.status === "done") {
-        const resMsgs = await API.get(`/message/room/${email}`);
+        const resMsgs = await API.get(`/message/room/${email}`, {
+          headers: authHeaders,
+        });
         const lastUserMsg = (resMsgs.data.data || [])
           .filter((msg) => msg.sender === "user")
           .pop();
@@ -85,10 +93,14 @@ const CustomerServiceRoom = () => {
     if (!input.trim() || !email) return;
 
     try {
-      await API.post(`/message/room/${email}/user`, {
-        name: user.name,
-        message: input,
-      });
+      await API.post(
+        `/message/room/${email}/user`,
+        {
+          name: user.name,
+          message: input,
+        },
+        { headers: authHeaders }
+      );
       setInput("");
       fetchMessages();
       fetchStatus();

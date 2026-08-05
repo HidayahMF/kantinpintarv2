@@ -65,8 +65,10 @@ export const sendAdminMessage = async (req, res) => {
 // User send message (set unreadForAdmin: true)
 export const sendUserMessage = async (req, res) => {
   try {
-    const email = req.params.email || req.body.email;
-    const { name, message } = req.body;
+    // Identitas diambil dari token (req.user) agar tidak bisa dipalsukan lewat body.
+    const email = req.user?.email || req.params.email || req.body.email;
+    const name = req.user?.name || req.body.name;
+    const message = req.body.message;
 
     if (!name || !email || !message) {
       return res.status(400).json({ success: false, message: "Mohon lengkapi semua field." });

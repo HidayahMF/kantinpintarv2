@@ -52,11 +52,11 @@ const Verify = () => {
           await fetchFoodList();
 
           // Redirect ke halaman orders
-          setTimeout(() => navigate("/myorders"), 800);
+          setTimeout(() => navigate("/myorder"), 800);
         } else if (data.status === "pending") {
           setStatus("pending");
           setError(data.message || "Payment is still pending.");
-          setTimeout(() => navigate("/myorders"), 2000);
+          setTimeout(() => navigate("/myorder"), 2000);
         } else {
           console.warn("[DEBUG] Verification failed:", data);
           setStatus("failed");
