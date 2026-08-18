@@ -1,14 +1,83 @@
-.navbar {
+.topbar {
+  height: var(--topbar-height);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 8px 4%;
+  gap: var(--space-3);
+  padding: 0 var(--space-4);
+  position: sticky;
+  top: 0;
+  z-index: 90;
 }
 
-.navbar .logo {
-  width: max(10%, 80px);
+.topbar-menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
 }
 
-.navbar .profile {
-  width: 40px;
+.topbar-menu-btn:hover {
+  background: var(--color-background);
+}
+
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.topbar-logo {
+  height: 28px;
+  width: auto;
+  object-fit: contain;
+}
+
+.topbar-brand-name {
+  font-weight: 800;
+  font-size: var(--text-small);
+  letter-spacing: -0.01em;
+}
+
+.topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.topbar-user-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.topbar-user-name {
+  font-size: var(--text-small);
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .topbar-menu-btn {
+    display: flex;
+  }
+
+  .topbar-user-name {
+    display: none;
+  }
 }

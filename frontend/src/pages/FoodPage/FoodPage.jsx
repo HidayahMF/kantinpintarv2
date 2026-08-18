@@ -7,15 +7,11 @@ import { StoreContext } from "../../context/StoreContextProvider";
 
 const FoodPage = () => {
   const { categoryName } = useParams();
-  const { foodList, url, fetchFoodList } = useContext(StoreContext);
+  const { foodList, fetchFoodList } = useContext(StoreContext);
   const [selectedCategory, setSelectedCategory] = useState("All");
 
   useEffect(() => {
-    if (categoryName) {
-      setSelectedCategory(categoryName);
-    } else {
-      setSelectedCategory("All");
-    }
+    setSelectedCategory(categoryName || "All");
   }, [categoryName]);
 
   useEffect(() => {
@@ -24,12 +20,18 @@ const FoodPage = () => {
 
   return (
     <div className="food-page">
-      <div className="sidebar">
-        <CategorySidebar
-          selectedCategory={selectedCategory}
-          onCategorySelect={setSelectedCategory}
-        />
+      <div className="food-page-head">
+        <h1 className="page-title">Menu</h1>
+        <p className="page-subtitle">
+          Pilih kategori favoritmu atau cari makanan yang kamu inginkan.
+        </p>
       </div>
+
+      <CategorySidebar
+        selectedCategory={selectedCategory}
+        onCategorySelect={setSelectedCategory}
+      />
+
       <div className="food-display-wrapper">
         <FoodDisplay foods={foodList} selectedCategory={selectedCategory} />
       </div>

@@ -8,45 +8,51 @@ const ExploreMenu = ({ category, setCategory }) => {
   };
 
   return (
-    <div className="explore-menu" id="explore-menu">
-      <div className="explore-menu-header">
-        <h1>Explore our menu</h1>
+    <section className="explore-menu" id="explore-menu">
+      <div className="section-head">
+        <div>
+          <h2>Explore our menu</h2>
+          <p>
+            Choose from a wide variety of mouth-watering dishes across multiple
+            categories — from local favorites to international delights.
+          </p>
+        </div>
         {category !== "All" && (
-          <button className="back-to-food-btn" onClick={handleBack}>
-            &larr; Back to Food Display
+          <button className="btn btn-ghost btn-sm" onClick={handleBack}>
+            ← Back to All
           </button>
         )}
       </div>
 
-      <p className="explore-menu-text">
-        Choose from a wide variety of mouth-watering dishes across multiple categories –
-        from local favorites to international delights.
-      </p>
-
-      <div className="explore-menu-list">
+      <div className="explore-menu-list" role="list">
         {menu_list.map((item, index) => {
+          const isActive = category === item.menu_name;
           return (
-            <div
+            <button
+              role="listitem"
               onClick={() =>
                 setCategory((prev) =>
                   prev === item.menu_name ? "All" : item.menu_name
                 )
               }
               key={index}
-              className="explore-menu-list-item"
+              className={`explore-menu-list-item ${isActive ? "active" : ""}`}
+              aria-pressed={isActive}
             >
-              <img
-                className={category === item.menu_name ? "active" : ""}
-                src={item.menu_image}
-                alt=""
-              />
+              <span className="explore-menu-img-wrap">
+                <img
+                  className={isActive ? "active" : ""}
+                  src={item.menu_image}
+                  alt={item.menu_name}
+                  loading="lazy"
+                />
+              </span>
               <p>{item.menu_name}</p>
-            </div>
+            </button>
           );
         })}
       </div>
-      <hr />
-    </div>
+    </section>
   );
 };
 

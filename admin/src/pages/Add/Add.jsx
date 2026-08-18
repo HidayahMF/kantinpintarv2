@@ -1,9 +1,8 @@
-import React, { useContext, useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import "./Add.css";
-import { assets } from "../../assets/assets";
 import { toast } from "react-toastify";
 import API from "../../api";
-import { StoreContext } from "../../context/StoreContextProvider";
+import { FiUploadCloud } from "react-icons/fi";
 
 const menu_list = [
   { menu_name: "Salad" },
@@ -17,7 +16,6 @@ const menu_list = [
 ];
 
 const Add = ({ onAddSuccess }) => {
-  const { token } = useContext(StoreContext);
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
   const previewUrlRef = useRef(null);
@@ -28,6 +26,7 @@ const Add = ({ onAddSuccess }) => {
     stock: "",
     category: "",
   });
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (menu_list.length > 0 && !data.category) {
@@ -55,7 +54,6 @@ const Add = ({ onAddSuccess }) => {
   const onSubmitHandler = async (event) => {
     event.preventDefault();
 
-   
     if (data.stock === "" || isNaN(Number(data.stock)) || Number(data.stock) < 0) {
       toast.error("Stock harus diisi (minimal 0)");
       return;
@@ -66,12 +64,12 @@ const Add = ({ onAddSuccess }) => {
     formData.append("description", data.description.trim());
     formData.append("price", Number(data.price));
     formData.append("category", data.category);
-    formData.append("stock", Number(data.stock)); 
+    formData.append("stock", Number(data.stock));
     formData.append("image", image);
 
+    setSubmitting(true);
     try {
-       const res = await API.post("/food/add", formData);
-
+      const res = await API.post("/food/add", formData);
       const result = res.data;
 
       if (result.success) {
@@ -93,6 +91,7 @@ const Add = ({ onAddSuccess }) => {
       console.error(err);
       toast.error("Failed to submit data");
     }
+    setSubmitting(false);
   };
 
   const onChangeHandler = (e) => {
@@ -101,18 +100,21 @@ const Add = ({ onAddSuccess }) => {
   };
 
   return (
-    <div className="add">
-      <form className="add-card" onSubmit={onSubmitHandler} autoComplete="off">
+    <div className="add-page">
+      <form className="add-card card" onSubmit={onSubmitHandler} autoComplete="off">
         <div className="add-img-upload">
           <p className="add-label">Upload Image</p>
           <label htmlFor="image" className="add-img-label">
-            <img
-              src={preview ? preview : assets.upload_area}
-              alt="Upload Preview"
-              className="add-img-preview"
-            />
+            {preview ? (
+              <img src={preview} alt="Upload Preview" className="add-img-preview" />
+            ) : (
+              <span className="add-img-placeholder">
+                <FiUploadCloud size={28} />
+                <span>Click to upload</span>
+              </span>
+            )}
             <span className="add-img-hint">
-              {preview ? "Change Image" : "Click to upload"}
+              {preview ? "Change Image" : "Upload food image"}
             </span>
           </label>
           <input
@@ -126,36 +128,43 @@ const Add = ({ onAddSuccess }) => {
         </div>
 
         <div className="add-form-fields">
-          <label className="add-label">Product name</label>
-          <input
-            onChange={onChangeHandler}
-            value={data.name}
-            type="text"
-            name="name"
-            placeholder="Type here"
-            className="add-input"
-            required
-          />
+          <div className="form-field">
+            <label htmlFor="add-name">Product name</label>
+            <input
+              id="add-name"
+              onChange={onChangeHandler}
+              value={data.name}
+              type="text"
+              name="name"
+              placeholder="Type here"
+              className="input"
+              required
+            />
+          </div>
 
-          <label className="add-label">Product description</label>
-          <textarea
-            onChange={onChangeHandler}
-            value={data.description}
-            name="description"
-            rows="5"
-            placeholder="Write content here"
-            className="add-textarea"
-            required
-          ></textarea>
+          <div className="form-field">
+            <label htmlFor="add-desc">Product description</label>
+            <textarea
+              id="add-desc"
+              onChange={onChangeHandler}
+              value={data.description}
+              name="description"
+              rows="5"
+              placeholder="Write content here"
+              className="textarea"
+              required
+            />
+          </div>
 
           <div className="add-category-price-row">
-            <div className="add-category">
-              <label className="add-label">Product Type</label>
+            <div className="form-field">
+              <label htmlFor="add-category">Product Type</label>
               <select
+                id="add-category"
                 onChange={onChangeHandler}
                 name="category"
                 value={data.category}
-                className="add-select"
+                className="select"
                 required
               >
                 {menu_list.map((menu) => (
@@ -165,39 +174,48 @@ const Add = ({ onAddSuccess }) => {
                 ))}
               </select>
             </div>
-            <div className="add-price">
-              <label className="add-label">Product price</label>
+            <div className="form-field">
+              <label htmlFor="add-price">Product price</label>
               <input
+                id="add-price"
                 onChange={onChangeHandler}
                 value={data.price}
                 type="number"
                 name="price"
                 placeholder="Rp 20000"
-                className="add-input"
+                className="input"
                 required
                 min="0"
                 step="0.01"
               />
             </div>
-            <div className="add-stock">
-              <label className="add-label">Stock</label>
+            <div className="form-field">
+              <label htmlFor="add-stock">Stock</label>
               <input
+                id="add-stock"
                 onChange={onChangeHandler}
                 value={data.stock}
                 type="number"
                 name="stock"
                 placeholder="0"
-                className="add-input add-stock-input"
+                className="input"
                 required
                 min="0"
                 step="1"
-                style={{ background: "#f6f8fc" }}
               />
             </div>
           </div>
         </div>
-        <button type="submit" className="add-btn">
-          ADD
+
+        <button type="submit" className="btn btn-primary" disabled={submitting}>
+          {submitting ? (
+            <>
+              <span className="btn-spinner" />
+              Adding...
+            </>
+          ) : (
+            "Add Food"
+          )}
         </button>
       </form>
     </div>

@@ -1,10 +1,9 @@
-import React, { useEffect, useRef, useState, useContext } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "./CustomerServiceAdminRoom.css";
-import API from "../../api"; // pastikan path sesuai struktur project kamu
-import { StoreContext } from "../../context/StoreContextProvider";
+import API from "../../api";
+import { FiSend, FiX, FiCheckCircle, FiHeadphones } from "react-icons/fi";
 
 const CustomerServiceAdminRoom = ({ email, onClose, onStatusChange }) => {
-  const { token } = useContext(StoreContext);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(true);
@@ -17,7 +16,9 @@ const CustomerServiceAdminRoom = ({ email, onClose, onStatusChange }) => {
 
   useEffect(() => {
     isMountedRef.current = true;
-    return () => { isMountedRef.current = false; };
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
   const fetchMessages = async () => {
@@ -85,28 +86,41 @@ const CustomerServiceAdminRoom = ({ email, onClose, onStatusChange }) => {
 
   return (
     <div className="cs-admin-room-modal">
-      <div className="cs-admin-room-box">
+      <div className="cs-admin-room-box card">
         <div className="cs-admin-room-header">
-          <b>Chat: {email}</b>
-          <button onClick={onClose} className="close-btn">
-            &times;
+          <span className="cs-admin-room-avatar">
+            <FiHeadphones size={17} />
+          </span>
+          <div className="cs-admin-room-title">
+            <strong>Chat: {email}</strong>
+            <span className={`badge ${status === "done" ? "badge-neutral" : "badge-success"}`}>
+              {status === "done" ? "Completed" : "Open"}
+            </span>
+          </div>
+          <button onClick={onClose} className="modal-close" aria-label="Close chat">
+            <FiX size={18} />
           </button>
         </div>
 
         <div className="cs-admin-room-body">
-          {loading ? (
-            <p>Loading...</p>
+          {loading && messages.length === 0 ? (
+            <div className="state-box">
+              <div className="spinner" />
+              <p>Memuat pesan...</p>
+            </div>
           ) : (
             <>
-              {/* Pesan-pesan */}
               <div className="cs-admin-room-messages">
+                {messages.length === 0 && (
+                  <div className="cs-room-empty">
+                    <p>Belum ada pesan dalam percakapan ini.</p>
+                  </div>
+                )}
                 {messages.map((msg) => (
                   <div
-                    className={
-                      msg.sender === "admin"
-                        ? "msg-bubble admin"
-                        : "msg-bubble user"
-                    }
+                    className={`msg-bubble ${
+                      msg.sender === "admin" ? "admin" : "user"
+                    }`}
                     key={msg._id}
                   >
                     <div className="msg-meta">
@@ -124,7 +138,6 @@ const CustomerServiceAdminRoom = ({ email, onClose, onStatusChange }) => {
                 <div ref={chatEndRef} />
               </div>
 
-              {/* Jika status sudah done */}
               {status === "done" ? (
                 <div className="cs-admin-room-closed">
                   Chat is finished, can't reply anymore.
@@ -138,15 +151,22 @@ const CustomerServiceAdminRoom = ({ email, onClose, onStatusChange }) => {
                     disabled={sending || status === "done"}
                     onFocus={() => setInputFocus(true)}
                     onBlur={() => setInputFocus(false)}
+                    aria-label="Message"
                   />
-                  <button type="submit" disabled={sending || !input.trim()}>
-                    Send
+                  <button
+                    type="submit"
+                    disabled={sending || !input.trim()}
+                    aria-label="Send message"
+                  >
+                    <FiSend size={16} />
                   </button>
                   <button
                     type="button"
                     className="done-btn"
                     onClick={handleDone}
+                    disabled={sending}
                   >
+                    <FiCheckCircle size={15} />
                     Mark Complete
                   </button>
                 </form>

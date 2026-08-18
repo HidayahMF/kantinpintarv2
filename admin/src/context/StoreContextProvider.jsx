@@ -17,8 +17,7 @@ const StoreContextProvider = ({ children }) => {
     return stored ? JSON.parse(stored) : {};
   });
 
- const url = import.meta.env.VITE_API_URL || "http://localhost:4000";
-
+  const url = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
   // Ambil token dari localStorage/URL
   useEffect(() => {
@@ -61,7 +60,7 @@ const StoreContextProvider = ({ children }) => {
     }
     const fetchUserInfo = async () => {
       try {
-         const res = await API.get('/user/me');
+        const res = await API.get("/user/me");
         const data = res.data;
         if (data.success && data.user) {
           setIsAdmin(data.user?.isAdmin === true);
@@ -87,8 +86,7 @@ const StoreContextProvider = ({ children }) => {
   // ============ FETCH FOODLIST =============
   const fetchFoodList = async () => {
     try {
-       const res = await API.get('/food/list');
-        
+      const res = await API.get("/food/list");
       const data = res.data;
       if (Array.isArray(data)) setFoodList(data);
       else if (data?.success && Array.isArray(data.data)) setFoodList(data.data);
@@ -102,7 +100,7 @@ const StoreContextProvider = ({ children }) => {
     if (!initialized) return;
     fetchFoodList();
     if (token) {
-      loadCartData(token);
+      loadCartData();
       fetchOrders();
     }
   }, [token, initialized]);
@@ -120,7 +118,6 @@ const StoreContextProvider = ({ children }) => {
     const currentQty = cartItems[itemId] || 0;
     const stock = item?.stock ?? 0;
     if (currentQty + 1 > stock) {
-      // toast.error("Stock tidak cukup!");
       return;
     }
     setCartItems((prev) => ({
@@ -129,8 +126,10 @@ const StoreContextProvider = ({ children }) => {
     }));
     if (token) {
       try {
-         const res = await API.post("/cart/add",{itemId});
-      } catch {}
+        await API.post("/cart/add", { itemId });
+      } catch {
+        /* cart sync with server */
+      }
     }
   };
 
@@ -143,8 +142,10 @@ const StoreContextProvider = ({ children }) => {
     });
     if (token) {
       try {
-         const res = await API.post("/cart/remove",{itemId});
-      } catch {}
+        await API.post("/cart/remove", { itemId });
+      } catch {
+        /* cart sync with server */
+      }
     }
   };
 
@@ -155,7 +156,7 @@ const StoreContextProvider = ({ children }) => {
       return;
     }
     try {
-       const res = await API.get("/order/userorders");
+      const res = await API.get("/order/userorders");
       const data = res.data;
       if (data.success && Array.isArray(data.orders)) {
         setOrders(data.orders);
@@ -167,9 +168,9 @@ const StoreContextProvider = ({ children }) => {
     }
   };
 
-  const loadCartData = async (token) => {
+  const loadCartData = async () => {
     try {
-       const res = await API.get("/cart/get");
+      const res = await API.get("/cart/get");
       const data = res.data;
       setCartItems(data.cartData || {});
     } catch {
@@ -180,7 +181,7 @@ const StoreContextProvider = ({ children }) => {
   const reloadAll = async () => {
     await fetchFoodList();
     if (token) {
-      await loadCartData(token);
+      await loadCartData();
       await fetchOrders();
     }
   };
@@ -192,11 +193,11 @@ const StoreContextProvider = ({ children }) => {
 
   const addReview = async (foodId, review) => {
     try {
-       const res = await API.post("/food/review",{
+      const res = await API.post("/food/review", {
         foodId,
         rating: review.rating,
         comment: review.comment,
-       });
+      });
       const data = res.data;
       if (data.success && data.food) {
         setFoodList((prev) =>
@@ -216,7 +217,7 @@ const StoreContextProvider = ({ children }) => {
           )
         );
       }
-    } catch (err) {
+    } catch {
       setFoodList((prev) =>
         prev.map((food) =>
           String(food._id || food.id) === String(foodId)

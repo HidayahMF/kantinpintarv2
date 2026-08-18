@@ -1,19 +1,20 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import "./ListCategory.css";
-import { StoreContext } from "../../context/StoreContextProvider";
-import API from "../../api"; // ✅ gunakan axios instance
+import API from "../../api";
+import ConfirmDialog from "../../components/ConfirmDialog/ConfirmDialog";
+import { FiPlus, FiList, FiEdit2, FiTrash2, FiTag } from "react-icons/fi";
 
 const CATEGORIES_PER_PAGE = 5;
 
 const ListCategory = ({ onCategoriesChange }) => {
-  const { token: tokenContext } = useContext(StoreContext);
-  const token = tokenContext;
-
   const [activeTab, setActiveTab] = useState("list");
   const [categories, setCategories] = useState([]);
   const [name, setName] = useState("");
   const [editId, setEditId] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.ceil(categories.length / CATEGORIES_PER_PAGE);
@@ -40,9 +41,7 @@ const ListCategory = ({ onCategoriesChange }) => {
         throw new Error(res.data.message || "Failed to fetch categories");
       }
     } catch (error) {
-      toast.error(
-        "Failed to load categories: " + (error.message || "Network error")
-      );
+      toast.error("Failed to load categories: " + (error.message || "Network error"));
       console.error(error);
     }
   };
@@ -50,6 +49,7 @@ const ListCategory = ({ onCategoriesChange }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name.trim()) return toast.error("Category name is required");
+    setSaving(true);
     try {
       let res;
       if (editId) {
@@ -69,11 +69,10 @@ const ListCategory = ({ onCategoriesChange }) => {
         throw new Error(res.data.message || "Failed to save category");
       }
     } catch (error) {
-      toast.error(
-        "Failed to save category: " + (error.message || "Network error")
-      );
+      toast.error("Failed to save category: " + (error.message || "Network error"));
       console.error(error);
     }
+    setSaving(false);
   };
 
   const handleEdit = (cat) => {
@@ -82,10 +81,11 @@ const ListCategory = ({ onCategoriesChange }) => {
     setActiveTab("add");
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this category?")) return;
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      const res = await API.delete(`/category/${id}`);
+      const res = await API.delete(`/category/${deleteTarget}`);
       if (res.data.success) {
         toast.success("Category deleted");
         fetchCategories();
@@ -94,112 +94,172 @@ const ListCategory = ({ onCategoriesChange }) => {
         throw new Error(res.data.message || "Failed to delete category");
       }
     } catch (error) {
-      toast.error(
-        "Failed to delete category: " + (error.message || "Network error")
-      );
+      toast.error("Failed to delete category: " + (error.message || "Network error"));
       console.error(error);
     }
+    setDeleting(false);
+    setDeleteTarget(null);
   };
 
   return (
     <div className="list-category">
       <div className="tab-buttons">
         <button
-          className={activeTab === "add" ? "active" : ""}
-          onClick={() => setActiveTab("add")}
+          className={`tab-btn ${activeTab === "add" ? "active" : ""}`}
+          onClick={() => {
+            setActiveTab("add");
+            if (!editId) setName("");
+          }}
         >
-          ➕ Add Category
+          <FiPlus size={15} />
+          {editId ? "Edit Category" : "Add Category"}
         </button>
         <button
-          className={activeTab === "list" ? "active" : ""}
-          onClick={() => setActiveTab("list")}
+          className={`tab-btn ${activeTab === "list" ? "active" : ""}`}
+          onClick={() => {
+            setActiveTab("list");
+            setEditId(null);
+          }}
         >
-          📋 List Categories
+          <FiList size={15} />
+          List Categories
         </button>
       </div>
 
       {activeTab === "add" && (
-        <div className="add-category-form">
+        <div className="add-category-card card">
           <h2>{editId ? "Edit Category" : "Add New Category"}</h2>
           <form onSubmit={handleSubmit}>
-            <input
-              type="text"
-              placeholder="Enter category name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-            <button type="submit">{editId ? "Update" : "Add"}</button>
+            <div className="form-field">
+              <label htmlFor="cat-name">Category name</label>
+              <input
+                id="cat-name"
+                className="input"
+                type="text"
+                placeholder="Enter category name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                autoFocus
+              />
+            </div>
+            <div className="form-actions">
+              <button type="submit" className="btn btn-primary" disabled={saving}>
+                {saving ? (
+                  <>
+                    <span className="btn-spinner" />
+                    Saving...
+                  </>
+                ) : editId ? (
+                  "Update Category"
+                ) : (
+                  "Add Category"
+                )}
+              </button>
+              {editId && (
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={() => {
+                    setEditId(null);
+                    setName("");
+                  }}
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
           </form>
         </div>
       )}
 
       {activeTab === "list" && (
-        <div className="category-list-table">
-          <h2>Category List</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>No</th>
-                <th>Category</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentCategories.map((cat, index) => (
-                <tr key={cat._id}>
-                  <td>{startIndex + index + 1}</td>
-                  <td>{cat.name}</td>
-                  <td>
-                    <button onClick={() => handleEdit(cat)}>✏️</button>
-                    <button onClick={() => handleDelete(cat._id)}>🗑️</button>
-                  </td>
-                </tr>
-              ))}
-              {currentCategories.length === 0 && (
+        <div className="table-card">
+          <div className="table-card-header">
+            <h2>Category List</h2>
+            <span className="badge badge-neutral">{categories.length} categories</span>
+          </div>
+          <div className="table-responsive">
+            <table className="modern-table">
+              <thead>
                 <tr>
-                  <td colSpan={3} style={{ textAlign: "center", color: "#aaa" }}>
-                    No categories found.
-                  </td>
+                  <th style={{ width: 60 }}>No</th>
+                  <th>Category</th>
+                  <th style={{ textAlign: "center", width: 120 }}>Actions</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {currentCategories.map((cat, index) => (
+                  <tr key={cat._id}>
+                    <td className="muted-cell">{startIndex + index + 1}</td>
+                    <td>
+                      <span className="cat-name-cell">
+                        <FiTag size={15} />
+                        {cat.name}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: "center" }}>
+                      <button
+                        className="icon-btn edit"
+                        onClick={() => handleEdit(cat)}
+                        aria-label={`Edit ${cat.name}`}
+                      >
+                        <FiEdit2 size={15} />
+                      </button>
+                      <button
+                        className="icon-btn danger"
+                        onClick={() => setDeleteTarget(cat._id)}
+                        aria-label={`Delete ${cat.name}`}
+                      >
+                        <FiTrash2 size={15} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {currentCategories.length === 0 && (
+                  <tr>
+                    <td colSpan={3} className="empty-cell">
+                      No categories found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
 
           {categories.length > CATEGORIES_PER_PAGE && (
-            <div
-              className="pagination-controls"
-              style={{ textAlign: "center", margin: "20px 0" }}
-            >
+            <div className="pagination">
               <button
-                className="icon-btn"
-                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                className="btn btn-ghost btn-sm"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                style={{ marginRight: 8, opacity: currentPage === 1 ? 0.5 : 1 }}
-                title="Previous"
               >
-                ⬅️
+                &larr; Prev
               </button>
-              <span>
-                Page {currentPage} of {totalPages}
+              <span className="pagination-info">
+                Page <b>{currentPage}</b> of <b>{totalPages}</b>
               </span>
               <button
-                className="icon-btn"
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(p + 1, totalPages))
-                }
+                className="btn btn-ghost btn-sm"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                style={{
-                  marginLeft: 8,
-                  opacity: currentPage === totalPages ? 0.5 : 1,
-                }}
-                title="Next"
               >
-                ➡️
+                Next &rarr;
               </button>
             </div>
           )}
         </div>
+      )}
+
+      {deleteTarget && (
+        <ConfirmDialog
+          title="Delete this category?"
+          message="Kategori akan dihapus. Lanjutkan?"
+          confirmText="Delete"
+          busy={deleting}
+          onConfirm={handleDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
       )}
     </div>
   );

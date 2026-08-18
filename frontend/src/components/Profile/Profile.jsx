@@ -1,17 +1,31 @@
 import React, { useContext, useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { StoreContext } from "../../context/StoreContextProvider";
 import { toast } from "react-toastify";
 import API from "../../api";
 import "./Profile.css";
+import {
+  FiMail,
+  FiUser,
+  FiCalendar,
+  FiShield,
+  FiLogOut,
+  FiEdit2,
+  FiCamera,
+  FiSave,
+  FiX,
+} from "react-icons/fi";
 
 const Profile = () => {
-  const { url, token } = useContext(StoreContext);
+  const { url, token, logout } = useContext(StoreContext);
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [newEmail, setNewEmail] = useState("");
   const [previewImg, setPreviewImg] = useState(null);
   const [uploadImg, setUploadImg] = useState(null);
   const [avatarBuster, setAvatarBuster] = useState(Date.now());
+  const [saving, setSaving] = useState(false);
   const fileRef = useRef();
   const previewUrlRef = useRef(null);
 
@@ -34,9 +48,7 @@ const Profile = () => {
     ? previewImg
     : user?.avatar
     ? `${url}/uploads/${user.avatar}?v=${avatarBuster}`
-    : "https://ui-avatars.com/api/?name=" +
-      encodeURIComponent(user?.name || "User") +
-      "&background=FF6834&color=fff&bold=true&size=128";
+    : null;
 
   const handleSave = async () => {
     if (!newEmail || !/\S+@\S+\.\S+/.test(newEmail)) {
@@ -51,6 +63,7 @@ const Profile = () => {
     fd.append("email", newEmail);
     if (uploadImg) fd.append("avatar", uploadImg);
 
+    setSaving(true);
     try {
       const res = await API.put("/user/update-profile", fd);
 
@@ -77,154 +90,183 @@ const Profile = () => {
     } catch {
       toast.error("Failed to update profile.");
     }
+    setSaving(false);
+  };
+
+  const handleLogout = () => {
+    if (logout) logout();
+    toast.success("Anda berhasil logout!");
   };
 
   // ===== NOT LOGGED IN STATE =====
-  if (!token || !user)
+  if (!token || !user) {
     return (
-      <div className="profile-container">
-        <div className="profile-card">
-          <h2>Profile</h2>
-          <div className="profile-avatar">
-            <img
-              src="https://ui-avatars.com/api/?name=Guest&background=eee&color=FF6834"
-              alt="avatar"
-            />
+      <div className="profile-page">
+        <div className="state-box">
+          <div className="state-icon">
+            <FiUser size={24} />
           </div>
-          <p style={{ margin: "24px 0", color: "#888" }}>
-            You are not logged in.
-          </p>
+          <h3>Kamu belum login</h3>
+          <p>Masuk untuk melihat dan mengelola profilmu.</p>
+          <button className="btn btn-primary" onClick={() => navigate("/")}>
+            Back to Home
+          </button>
         </div>
       </div>
     );
+  }
 
-  // ===== MAIN PROFILE UI =====
+  const joinedDate = user.createdAt
+    ? new Date(user.createdAt).toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : "-";
+
   return (
-    <div className="profile-container">
-      <div className="profile-card">
-        <div className="profile-avatar">
-          <img src={avatar} alt="avatar" />
-          {editMode && (
-            <button
-              className="edit-btn"
-              title="Change Photo"
-              onClick={() => fileRef.current.click()}
-              type="button"
-            >
-              ✏️
-            </button>
-          )}
+    <div className="profile-page">
+      <div className="section-head">
+        <div>
+          <h1 className="page-title">Profile</h1>
+          <p className="page-subtitle">Kelola informasi akunmu.</p>
         </div>
+      </div>
 
-        <h2 style={{ color: "#232323", margin: "8px 0 4px" }}>
-          {user?.name || "No Name"}
-        </h2>
-
-        <div className="profile-info">
-          <div>
-            <label>Email</label>
-            {editMode ? (
-              <input
-                type="email"
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-                style={{
-                  fontWeight: 500,
-                  padding: "4px 10px",
-                  border: "1px solid #eee",
-                  borderRadius: "7px",
-                  fontSize: "15px",
-                  outline: "none",
-                  width: "180px",
-                }}
-                autoFocus
-              />
+      <div className="profile-card card">
+        <div className="profile-header">
+          <div className="profile-avatar">
+            {avatar ? (
+              <img src={avatar} alt={`${user.name} avatar`} />
             ) : (
-              <p>{user?.email}</p>
+              <span className="profile-avatar-fallback">
+                {(user.name || "U").charAt(0).toUpperCase()}
+              </span>
+            )}
+            {editMode && (
+              <button
+                className="profile-avatar-edit"
+                title="Change Photo"
+                onClick={() => fileRef.current.click()}
+                type="button"
+              >
+                <FiCamera size={15} />
+              </button>
             )}
           </div>
 
-          <div>
-            <label>Role</label>
-            <p>
-              {user?.isAdmin ? (
-                <span className="profile-role admin">Admin</span>
-              ) : (
-                <span className="profile-role user">User</span>
-              )}
-            </p>
+          <div className="profile-header-info">
+            <h2>{user.name || "No Name"}</h2>
+            <span className={`badge ${user.isAdmin ? "badge-accent" : "badge-info"}`}>
+              {user.isAdmin ? "Admin" : "Customer"}
+            </span>
           </div>
 
-          <div>
-            <label>Date Joined</label>
-            <p>
-              {user?.createdAt
-                ? new Date(user.createdAt).toLocaleDateString("en-US")
-                : "-"}
-            </p>
+          <div className="profile-header-actions">
+            {editMode ? (
+              <>
+                <button
+                  className="btn btn-primary btn-sm"
+                  onClick={handleSave}
+                  disabled={saving}
+                >
+                  <FiSave size={14} />
+                  {saving ? "Saving..." : "Save"}
+                </button>
+                <button
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => {
+                    setEditMode(false);
+                    setPreviewImg(null);
+                    setUploadImg(null);
+                    setNewEmail(user.email);
+                  }}
+                >
+                  <FiX size={14} />
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={() => {
+                  setEditMode(true);
+                  setNewEmail(user.email);
+                }}
+              >
+                <FiEdit2 size={14} />
+                Edit Profile
+              </button>
+            )}
           </div>
         </div>
 
-        {editMode ? (
-          <div
-            style={{
-              width: "100%",
-              marginTop: 18,
-              display: "flex",
-              gap: 8,
-              justifyContent: "center",
-            }}
-          >
-            <button
-              className="profile-action-btn"
-              style={{ background: "#ff6834" }}
-              onClick={handleSave}
-              type="button"
-            >
-              Save
-            </button>
-            <button
-              className="profile-action-btn"
-              style={{ background: "#f5f5f5", color: "#ff6834" }}
-              onClick={() => {
-                setEditMode(false);
-                setPreviewImg(null);
-                setUploadImg(null);
-                setNewEmail(user.email);
-              }}
-              type="button"
-            >
-              Cancel
-            </button>
+        <div className="profile-info-grid">
+          <div className="profile-info-item">
+            <span className="profile-info-icon">
+              <FiMail size={16} />
+            </span>
+            <div>
+              <label>Email</label>
+              {editMode ? (
+                <input
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  className="input"
+                  autoFocus
+                  aria-label="New email"
+                />
+              ) : (
+                <p>{user.email}</p>
+              )}
+            </div>
           </div>
-        ) : (
-          <button
-            className="profile-action-btn"
-            onClick={() => {
-              setEditMode(true);
-              setNewEmail(user.email);
-            }}
-          >
-            Edit Profile
-          </button>
-        )}
 
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          style={{ display: "none" }}
-          onChange={(e) => {
-            if (e.target.files[0]) {
-              if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
-              const url = URL.createObjectURL(e.target.files[0]);
-              previewUrlRef.current = url;
-              setPreviewImg(url);
-              setUploadImg(e.target.files[0]);
-            }
-          }}
-        />
+          <div className="profile-info-item">
+            <span className="profile-info-icon">
+              <FiShield size={16} />
+            </span>
+            <div>
+              <label>Role</label>
+              <p>{user.isAdmin ? "Admin" : "User"}</p>
+            </div>
+          </div>
+
+          <div className="profile-info-item">
+            <span className="profile-info-icon">
+              <FiCalendar size={16} />
+            </span>
+            <div>
+              <label>Date Joined</label>
+              <p>{joinedDate}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="profile-actions">
+          <button className="btn btn-danger" onClick={handleLogout}>
+            <FiLogOut size={15} />
+            Logout
+          </button>
+        </div>
       </div>
+
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        style={{ display: "none" }}
+        onChange={(e) => {
+          if (e.target.files[0]) {
+            if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+            const objectUrl = URL.createObjectURL(e.target.files[0]);
+            previewUrlRef.current = objectUrl;
+            setPreviewImg(objectUrl);
+            setUploadImg(e.target.files[0]);
+          }
+        }}
+      />
     </div>
   );
 };

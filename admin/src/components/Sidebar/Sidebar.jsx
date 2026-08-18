@@ -1,100 +1,74 @@
-import React from "react";
+import React, { useContext } from "react";
 import "./Sidebar.css";
-import { assets } from "../../assets/assets";
 import { NavLink } from "react-router-dom";
+import { StoreContext } from "../../context/StoreContextProvider";
+import { toast } from "react-toastify";
+import {
+  FiLayout,
+  FiPlusSquare,
+  FiList,
+  FiShoppingBag,
+  FiTag,
+  FiLayers,
+  FiMessageSquare,
+  FiLogOut,
+  FiX,
+} from "react-icons/fi";
 
-const Sidebar = () => {
+const Sidebar = ({ open, onClose }) => {
+  const { logout } = useContext(StoreContext);
+
+  const handleLogout = () => {
+    if (logout) logout();
+    toast.success("Anda berhasil logout!");
+  };
+
+  const links = [
+    { to: "/dashboard", icon: FiLayout, label: "Dashboard" },
+    { to: "/add", icon: FiPlusSquare, label: "Add Items" },
+    { to: "/list", icon: FiList, label: "Food List" },
+    { to: "/orders", icon: FiShoppingBag, label: "Orders" },
+    { to: "/category", icon: FiTag, label: "Add Food" },
+    { to: "/list-category", icon: FiLayers, label: "Categories" },
+    { to: "/customer-service", icon: FiMessageSquare, label: "Customer Service" },
+  ];
+
   return (
-    <div className="sidebar">
-      <div className="sidebar-options">
-        <NavLink
-          to="/dashboard"
-          className={({ isActive }) =>
-            isActive ? "sidebar-option active" : "sidebar-option"
-          }
-        >
-          <img
-            src={assets.dashboard}
-            alt="Dashboard Icon"
-            className="sidebar-icon"
-          />
-          <p>Dashboard</p>
-        </NavLink>
-        <NavLink
-          to="/add"
-          className={({ isActive }) =>
-            isActive ? "sidebar-option active" : "sidebar-option"
-          }
-        >
-          <img src={assets.add_icon} alt="Add Icon" className="sidebar-icon" 
-           style={{ cursor: "pointer", width: "23px", height: "23px" }}/>
-          <p>Add Items</p>
-        </NavLink>
+    <>
+      {open && <div className="sidebar-backdrop" onClick={onClose} />}
+      <aside className={`sidebar ${open ? "open" : ""}`}>
+        <button className="sidebar-close" onClick={onClose} aria-label="Close menu">
+          <FiX size={18} />
+        </button>
 
-        <NavLink
-          to="/list"
-          className={({ isActive }) =>
-            isActive ? "sidebar-option active" : "sidebar-option"
-          }
-        >
-          <img src={assets.list} alt="List Icon" className="sidebar-icon" />
-          <p>List Items</p>
-        </NavLink>
+        <nav className="sidebar-nav" aria-label="Admin navigation">
+          {links.map((link) => {
+            const Icon = link.icon;
+            return (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                end={link.to === "/category"}
+                className={({ isActive }) =>
+                  isActive ? "sidebar-link active" : "sidebar-link"
+                }
+                onClick={onClose}
+              >
+                <Icon size={18} />
+                <span>{link.label}</span>
+              </NavLink>
+            );
+          })}
+        </nav>
 
-        <NavLink
-          to="/orders"
-          className={({ isActive }) =>
-            isActive ? "sidebar-option active" : "sidebar-option"
-          }
-        >
-          <img src={assets.order_icon} alt="Orders Icon" className="sidebar-icon" 
-          style={{ cursor: "pointer", width: "23px", height: "23px" }}/>
-          <p>Orders</p>
-        </NavLink>
-
-        <NavLink
-          to="/category"
-          end
-          className={({ isActive }) =>
-            isActive ? "sidebar-option active" : "sidebar-option"
-          }
-        >
-          <img
-            src={assets.category}
-            alt="Category Icon"
-            className="sidebar-icon"
-          />
-          <p>Category</p>
-        </NavLink>
-
-        <NavLink
-          to="/list-category"
-          className={({ isActive }) =>
-            isActive ? "sidebar-option active" : "sidebar-option"
-          }
-        >
-          <img
-            src={assets.list}
-            alt="List Category Icon"
-            className="sidebar-icon"
-          />
-          <p>List Category</p>
-        </NavLink>
-        <NavLink
-          to="/customer-service"
-          className={({ isActive }) =>
-            isActive ? "sidebar-option active" : "sidebar-option"
-          }
-        >
-          <img
-            src={assets.customer}
-            alt="Customer Service Icon"
-            className="sidebar-icon"
-          />
-          <p>Customer Service</p>
-        </NavLink>
-      </div>
-    </div>
+        <div className="sidebar-footer">
+          <button className="sidebar-logout" onClick={handleLogout}>
+            <FiLogOut size={18} />
+            <span>Logout</span>
+          </button>
+        </div>
+      </aside>
+    </>
   );
 };
 

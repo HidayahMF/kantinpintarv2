@@ -3,6 +3,12 @@ import "./Verify.css";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { StoreContext } from "../../context/StoreContextProvider";
 import API from "../../api";
+import {
+  FiCheckCircle,
+  FiClock,
+  FiXCircle,
+  FiLoader,
+} from "react-icons/fi";
 
 const Verify = () => {
   const [searchParams] = useSearchParams();
@@ -60,9 +66,11 @@ const Verify = () => {
           setError("Pembayaran tidak dapat diverifikasi. Silakan coba lagi.");
           schedule(() => navigate("/"), 2000);
         }
-      } catch (err) {
+      } catch {
         setStatus("failed");
-        setError("Gagal memverifikasi pembayaran. Silakan coba lagi atau hubungi customer service.");
+        setError(
+          "Gagal memverifikasi pembayaran. Silakan coba lagi atau hubungi customer service."
+        );
         schedule(() => navigate("/"), 2000);
       }
     };
@@ -71,28 +79,44 @@ const Verify = () => {
     return () => timers.forEach(clearTimeout);
   }, [orderId, initialStatus, navigate]);
 
+  const config = {
+    verifying: {
+      icon: <FiLoader size={30} className="verify-icon spin" />,
+      tone: "verifying",
+      title: "Verifying payment...",
+      text: "Kami sedang memverifikasi status pembayaranmu.",
+    },
+    pending: {
+      icon: <FiClock size={30} className="verify-icon" />,
+      tone: "pending",
+      title: "Payment still pending",
+      text: "Pembayaran masih menunggu konfirmasi. Kamu akan diarahkan ke halaman pesanan.",
+    },
+    success: {
+      icon: <FiCheckCircle size={30} className="verify-icon" />,
+      tone: "success",
+      title: "Payment verified!",
+      text: "Pembayaran berhasil. Mengarahkan ke halaman pesanan...",
+    },
+    failed: {
+      icon: <FiXCircle size={30} className="verify-icon" />,
+      tone: "failed",
+      title: "Payment failed",
+      text: error || "Terjadi kesalahan saat memverifikasi pembayaran.",
+    },
+  }[status];
+
   return (
     <div className="verify">
-      <div className="spinner">
-        <div className="spinner-circle"></div>
-
-        {status === "verifying" && (
-          <span className="verifying-text">Verifying payment...</span>
+      <div className="verify-card card">
+        <div className={`verify-icon-wrap ${config.tone}`}>{config.icon}</div>
+        <h1>{config.title}</h1>
+        <p>{config.text}</p>
+        {status === "failed" && (
+          <button className="btn btn-primary" onClick={() => navigate("/")}>
+            Back to Home
+          </button>
         )}
-
-        {status === "pending" && (
-          <span className="verifying-text">
-            ⏳ Pembayaran masih menunggu...
-          </span>
-        )}
-
-        {status === "success" && (
-          <span className="success-text">
-            ✅ Payment verified! Redirecting...
-          </span>
-        )}
-
-        {status === "failed" && <span className="error-text">❌ {error}</span>}
       </div>
     </div>
   );

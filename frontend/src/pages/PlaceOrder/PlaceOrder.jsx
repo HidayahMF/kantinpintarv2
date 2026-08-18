@@ -5,6 +5,7 @@ import API from "../../api";
 import { useNavigate } from "react-router-dom";
 import { formatRp } from "../../utils/format";
 import { toast } from "react-toastify";
+import { FiCreditCard, FiLock, FiArrowRight } from "react-icons/fi";
 
 const SHIPPING_FEE = 2000;
 
@@ -23,6 +24,7 @@ const PlaceOrder = () => {
     country: "",
     phone: "",
   });
+  const [placing, setPlacing] = useState(false);
 
   const navigate = useNavigate();
 
@@ -50,17 +52,17 @@ const PlaceOrder = () => {
       return;
     }
 
-    // Ambil item yang ada di cart
-    const orderItems = foodList
-      ?.filter((item) => cartItems[item._id] > 0)
-      .map((item) => ({
-        _id: item._id,
-        name: item.name,
-        price: item.price,
-        quantity: cartItems[item._id],
-        image: item.image,
-        category: item.category,
-      })) || [];
+    const orderItems =
+      foodList
+        ?.filter((item) => cartItems[item._id] > 0)
+        .map((item) => ({
+          _id: item._id,
+          name: item.name,
+          price: item.price,
+          quantity: cartItems[item._id],
+          image: item.image,
+          category: item.category,
+        })) || [];
 
     if (orderItems.length === 0) {
       toast.warning("Your cart is empty.");
@@ -71,11 +73,12 @@ const PlaceOrder = () => {
       address: data,
       items: orderItems,
     };
+
+    setPlacing(true);
     try {
       const res = await API.post("/order/place", orderData);
 
       if (res.data.success) {
-        // Bersihkan cart
         setCartItems({});
         localStorage.removeItem("cartItems");
 
@@ -119,132 +122,129 @@ const PlaceOrder = () => {
           "An error occurred while processing the order."
       );
     }
+    setPlacing(false);
   };
 
-  if (!cartItems || !foodList) return <div>Loading...</div>;
+  if (!cartItems || !foodList) {
+    return (
+      <div className="state-box">
+        <div className="spinner" />
+        <p>Memuat data...</p>
+      </div>
+    );
+  }
+
+  const orderItems = foodList.filter((item) => cartItems[item._id] > 0);
+  const subtotal = getTotalCartAmount();
+
+  const field = (name, label, type = "text", placeholder, extra = {}) => (
+    <div className="form-field">
+      <label htmlFor={name}>{label}</label>
+      <input
+        id={name}
+        className="input"
+        required
+        name={name}
+        type={type}
+        value={data[name]}
+        onChange={onChangeHandler}
+        placeholder={placeholder}
+        {...extra}
+      />
+    </div>
+  );
 
   return (
     <form onSubmit={placeOrder} className="place-order">
-      {/* ----------------- LEFT FORM ----------------- */}
+      {/* LEFT — shipping information */}
       <div className="place-order-left">
-        <p className="title">Shipping Information</p>
-        <div className="multi-fields">
-          <input
-            required
-            name="firstName"
-            value={data.firstName}
-            onChange={onChangeHandler}
-            placeholder="First name"
-          />
-          <input
-            required
-            name="lastName"
-            value={data.lastName}
-            onChange={onChangeHandler}
-            placeholder="Last name"
-          />
+        <div className="section-head">
+          <div>
+            <h2>Shipping Information</h2>
+            <p>Lengkapi data pengiriman pesananmu di bawah ini.</p>
+          </div>
         </div>
 
-        <input
-          required
-          name="email"
-          type="email"
-          value={data.email}
-          onChange={onChangeHandler}
-          placeholder="Email"
-        />
-        <input
-          required
-          name="street"
-          value={data.street}
-          onChange={onChangeHandler}
-          placeholder="Street Address"
-        />
-
-        <div className="multi-fields">
-          <input
-            required
-            name="city"
-            value={data.city}
-            onChange={onChangeHandler}
-            placeholder="City"
-          />
-          <input
-            required
-            name="state"
-            value={data.state}
-            onChange={onChangeHandler}
-            placeholder="Province"
-          />
+        <div className="checkout-form card">
+          <div className="form-row">
+            {field("firstName", "First name", "text", "First name")}
+            {field("lastName", "Last name", "text", "Last name")}
+          </div>
+          {field("email", "Email", "email", "you@example.com")}
+          {field("street", "Street Address", "text", "Street address")}
+          <div className="form-row">
+            {field("city", "City", "text", "City")}
+            {field("state", "Province", "text", "Province")}
+          </div>
+          <div className="form-row">
+            {field("zipcode", "Postal Code", "text", "Postal code")}
+            {field("country", "Country", "text", "Country", { required: false })}
+          </div>
+          {field("phone", "Phone number", "tel", "Phone number")}
         </div>
-
-        <div className="multi-fields">
-          <input
-            required
-            name="zipcode"
-            value={data.zipcode}
-            onChange={onChangeHandler}
-            placeholder="Postal Code"
-          />
-          <input
-            name="country"
-            value={data.country}
-            onChange={onChangeHandler}
-            placeholder="Country"
-          />
-        </div>
-
-        <input
-          required
-          name="phone"
-          value={data.phone}
-          onChange={onChangeHandler}
-          placeholder="Phone number"
-        />
       </div>
 
-      {/* ----------------- RIGHT SUMMARY ----------------- */}
+      {/* RIGHT — order summary */}
       <div className="place-order-right">
-        <div className="cart-total">
+        <div className="cart-summary-card card">
           <h2>Order Summary</h2>
 
-          {foodList
-            .filter((item) => cartItems[item._id] > 0)
-            .map((item) => (
-              <div key={item._id} className="cart-item-details">
-                <div>
-                  <p>{item.name}</p>
-                  <p>Qty {cartItems[item._id]}</p>
+          <div className="summary-items">
+            {orderItems.map((item) => (
+              <div key={item._id} className="summary-item">
+                <div className="summary-item-name">
+                  <span>{item.name}</span>
+                  <em>Qty {cartItems[item._id]}</em>
                 </div>
-                <div>
-                  <p>{formatRp(item.price * cartItems[item._id])}</p>
-                  <p className="price-each">{formatRp(item.price)} each</p>
-                </div>
+                <strong>{formatRp(item.price * cartItems[item._id])}</strong>
               </div>
             ))}
-
-          <hr />
-
-          <div className="cart-total-details">
-            <p>Subtotal</p>
-            <p>{formatRp(getTotalCartAmount())}</p>
-          </div>
-          <div className="cart-total-details">
-            <p>Shipping Costs</p>
-            <p>{getTotalCartAmount() === 0 ? "Rp 0" : formatRp(SHIPPING_FEE)}</p>
-          </div>
-          <div className="cart-total-details total">
-            <b>Total</b>
-            <b>
-              {getTotalCartAmount() === 0
-                ? "Rp 0"
-                : formatRp(getTotalCartAmount() + SHIPPING_FEE)}
-            </b>
           </div>
 
-          <button type="submit" className="place-order-btn">
-            Proceed to Payment
+          <div className="summary-divider" />
+
+          <div className="summary-row">
+            <span>Subtotal</span>
+            <span>{formatRp(subtotal)}</span>
+          </div>
+          <div className="summary-row">
+            <span>Shipping Costs</span>
+            <span>{subtotal === 0 ? "Rp 0" : formatRp(SHIPPING_FEE)}</span>
+          </div>
+          <div className="summary-divider" />
+          <div className="summary-row total">
+            <span>Total</span>
+            <strong>
+              {subtotal === 0 ? "Rp 0" : formatRp(subtotal + SHIPPING_FEE)}
+            </strong>
+          </div>
+
+          <button
+            type="submit"
+            className="btn btn-primary btn-lg btn-block"
+            disabled={placing}
+          >
+            {placing ? (
+              <>
+                <span className="btn-spinner" />
+                Processing...
+              </>
+            ) : (
+              <>
+                Place Order
+                <FiArrowRight size={17} />
+              </>
+            )}
           </button>
+
+          <div className="payment-trust">
+            <span>
+              <FiCreditCard size={14} /> Secure payment via Midtrans
+            </span>
+            <span>
+              <FiLock size={14} /> Your data is protected
+            </span>
+          </div>
         </div>
       </div>
     </form>

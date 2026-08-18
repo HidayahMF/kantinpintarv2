@@ -1,28 +1,64 @@
 .verify {
-  min-height: 50vh;
   display: flex;
-  justify-content: center;
   align-items: center;
-  font-family: 'Inter', Arial, sans-serif;
+  justify-content: center;
+  padding: var(--space-8) var(--space-4);
 }
-.spinner {
+
+.verify-card {
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  padding: var(--space-7) var(--space-5);
   display: flex;
   flex-direction: column;
   align-items: center;
-  color: #ff5027;
-  font-size: 1.15rem;
-  font-weight: 700;
+  gap: var(--space-3);
+  animation: fadeInUp 0.3s ease;
 }
-.spinner-circle {
-  border: 4px solid #ffe6db;
-  border-top: 4px solid #ff5027;
+
+.verify-icon-wrap {
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
-  width: 36px;
-  height: 36px;
-  margin-bottom: 14px;
-  animation: spin 1.1s linear infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-2);
 }
-@keyframes spin {
-  0% { transform: rotate(0);}
-  100% { transform: rotate(360deg);}
+
+.verify-icon-wrap.verifying {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.verify-icon-wrap.pending {
+  background: var(--color-warning-light);
+  color: var(--color-warning);
+}
+
+.verify-icon-wrap.success {
+  background: var(--color-success-light);
+  color: var(--color-success);
+}
+
+.verify-icon-wrap.failed {
+  background: var(--color-error-light);
+  color: var(--color-error);
+}
+
+.verify-icon.spin {
+  animation: spin 1s linear infinite;
+}
+
+.verify-card h1 {
+  font-size: var(--text-h2);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.verify-card p {
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  line-height: 1.6;
 }

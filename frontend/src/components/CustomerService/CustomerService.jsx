@@ -3,6 +3,14 @@ import "./CustomerService.css";
 import { StoreContext } from "../../context/StoreContextProvider";
 import CustomerServiceRoom from "../CustomerServiceRoom/CustomerServiceRoom";
 import API from "../../api";
+import {
+  FiChevronDown,
+  FiMessageCircle,
+  FiMail,
+  FiPhone,
+  FiClock,
+  FiSend,
+} from "react-icons/fi";
 
 const faqs = [
   {
@@ -20,7 +28,8 @@ const faqs = [
 ];
 
 const CustomerService = () => {
-  const { token, user } = useContext(StoreContext);  const [expand, setExpand] = useState(-1);
+  const { token, user } = useContext(StoreContext);
+  const [expand, setExpand] = useState(-1);
   const [form, setForm] = useState({ name: "", email: "", message: "" });
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
@@ -80,7 +89,10 @@ const CustomerService = () => {
   if (showRoom) {
     return (
       <div className="cs-container">
-        <button className="cs-room-back-btn" onClick={() => setShowRoom(false)}>
+        <button
+          className="btn btn-ghost btn-sm"
+          onClick={() => setShowRoom(false)}
+        >
           ← Back
         </button>
         <CustomerServiceRoom />
@@ -90,97 +102,173 @@ const CustomerService = () => {
 
   return (
     <div className="cs-container">
-      <div className="cs-hero">
-        <h1>Customer Service</h1>
-        <p>Have questions, issues, or need help? Our team is ready to help!</p>
+      <div className="cs-hero card">
+        <span className="cs-hero-icon">
+          <FiMessageCircle size={26} />
+        </span>
+        <h1 className="page-title">Customer Service</h1>
+        <p className="page-subtitle">
+          Have questions, issues, or need help? Our team is ready to help!
+        </p>
       </div>
 
-      <div className="cs-section">
-        <h2>FAQ (Frequently Asked Questions)</h2>
+      <section className="cs-section">
+        <div className="section-head">
+          <div>
+            <h2>FAQ</h2>
+            <p>Frequently asked questions</p>
+          </div>
+        </div>
         <div className="cs-faq">
           {faqs.map((item, idx) => (
             <div
               key={idx}
-              className={`cs-faq-item ${expand === idx ? "active" : ""}`}
+              className={`cs-faq-item card ${expand === idx ? "active" : ""}`}
               onClick={() => setExpand(expand === idx ? -1 : idx)}
               tabIndex={0}
               role="button"
+              aria-expanded={expand === idx}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setExpand(expand === idx ? -1 : idx);
+                }
+              }}
             >
               <div className="cs-faq-q">
                 {item.q}
-                <span>{expand === idx ? "▲" : "▼"}</span>
+                <FiChevronDown
+                  size={18}
+                  className={expand === idx ? "rotated" : ""}
+                />
               </div>
-              {expand === idx && <div className="cs-faq-a">{item.a}</div>}
+              {expand === idx && (
+                <div className="cs-faq-a fade-in">{item.a}</div>
+              )}
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
-      <div className="cs-section cs-contact-info">
-        <h2>Contact Us</h2>
-        <ul>
-          <li>
-            <b>Email:</b> support@kantingo.com
-          </li>
-          <li>
-            <b>WhatsApp:</b> +62-8212-5630-770
-          </li>
-          <li>
-            <b>Jam Operasional:</b> 09.00 - 21.00 WIB (Senin - Minggu)
-          </li>
-        </ul>
-      </div>
-
-      <div className="cs-section">
-        <h2>Send Direct Message</h2>
-        <form className="cs-form" onSubmit={handleSubmit}>
-          <input
-            type="text"
-            name="name"
-            placeholder="Nama Anda"
-            required
-            value={form.name}
-            onChange={handleChange}
-            disabled={loading || !!user?.name}
-            autoComplete="name"
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="Email aktif"
-            required
-            value={form.email}
-            onChange={handleChange}
-            disabled={loading || !!user?.email}
-            autoComplete="email"
-          />
-          <textarea
-            name="message"
-            placeholder="Tulis pesan Anda..."
-            required
-            rows={5}
-            value={form.message}
-            onChange={handleChange}
-            disabled={loading}
-          />
-          <button type="submit" disabled={sent || loading}>
-            {loading ? "Mengirim..." : sent ? "Pesan Terkirim!" : "Kirim Pesan"}
-          </button>
-          {error && <p className="cs-error">{error}</p>}
-          {sent && (
-            <p className="cs-success">Thank you, your message has been sent!</p>
-          )}
-        </form>
-      </div>
-
-      <div className="cs-section" style={{ textAlign: "center" }}>
-        <button className="cs-roomchat-btn" onClick={() => setShowRoom(true)}>
-          💬 Enter Chat Room with Admin
-        </button>
-        <div style={{ marginTop: 7, fontSize: ".97rem", color: "#555" }}>
-          Can send real-time chat with admin.
+      <section className="cs-section">
+        <div className="section-head">
+          <div>
+            <h2>Contact Us</h2>
+            <p>Hubungi kami melalui saluran berikut</p>
+          </div>
         </div>
-      </div>
+        <div className="cs-contact-grid">
+          <div className="cs-contact-item card">
+            <span className="cs-contact-icon">
+              <FiMail size={17} />
+            </span>
+            <div>
+              <label>Email</label>
+              <p>support@kantingo.com</p>
+            </div>
+          </div>
+          <div className="cs-contact-item card">
+            <span className="cs-contact-icon">
+              <FiPhone size={17} />
+            </span>
+            <div>
+              <label>WhatsApp</label>
+              <p>+62-8212-5630-770</p>
+            </div>
+          </div>
+          <div className="cs-contact-item card">
+            <span className="cs-contact-icon">
+              <FiClock size={17} />
+            </span>
+            <div>
+              <label>Jam Operasional</label>
+              <p>09.00 - 21.00 WIB (Senin - Minggu)</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="cs-section">
+        <div className="section-head">
+          <div>
+            <h2>Send Direct Message</h2>
+            <p>Kirim pesan langsung ke tim kami</p>
+          </div>
+        </div>
+        <form className="cs-form card" onSubmit={handleSubmit}>
+          <div className="form-row">
+            <div className="form-field">
+              <label htmlFor="cs-name">Nama</label>
+              <input
+                id="cs-name"
+                className="input"
+                type="text"
+                name="name"
+                placeholder="Nama Anda"
+                required
+                value={form.name}
+                onChange={handleChange}
+                disabled={loading || !!user?.name}
+                autoComplete="name"
+              />
+            </div>
+            <div className="form-field">
+              <label htmlFor="cs-email">Email</label>
+              <input
+                id="cs-email"
+                className="input"
+                type="email"
+                name="email"
+                placeholder="Email aktif"
+                required
+                value={form.email}
+                onChange={handleChange}
+                disabled={loading || !!user?.email}
+                autoComplete="email"
+              />
+            </div>
+          </div>
+          <div className="form-field">
+            <label htmlFor="cs-message">Pesan</label>
+            <textarea
+              id="cs-message"
+              className="textarea"
+              name="message"
+              placeholder="Tulis pesan Anda..."
+              required
+              rows={5}
+              value={form.message}
+              onChange={handleChange}
+              disabled={loading}
+            />
+          </div>
+          {error && <p className="login-error">{error}</p>}
+          {sent && (
+            <p className="cs-success">
+              Thank you, your message has been sent!
+            </p>
+          )}
+          <div>
+            <button type="submit" className="btn btn-primary" disabled={sent || loading}>
+              <FiSend size={15} />
+              {loading ? "Mengirim..." : sent ? "Pesan Terkirim!" : "Kirim Pesan"}
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <section className="cs-section cs-chat-section">
+        <div className="cs-chat-card card">
+          <div>
+            <h3>Chat with Admin</h3>
+            <p>Real-time chat langsung dengan admin KantinGo.</p>
+          </div>
+          <button className="btn btn-accent btn-lg" onClick={() => setShowRoom(true)}>
+            <FiMessageCircle size={17} />
+            Enter Chat Room
+          </button>
+        </div>
+      </section>
     </div>
   );
 };

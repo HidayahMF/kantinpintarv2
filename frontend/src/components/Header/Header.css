@@ -1,135 +1,180 @@
-.header {
-  min-height: 34vw;
-  max-height: 430px;
-  width: 100vw;
-  max-width: 100%;
-  margin: 36px auto 44px auto;
-  border-radius: 32px;
-  position: relative;
-  background: linear-gradient(
-      100deg,
-      rgba(255, 85, 51, 0.13) 0%,
-      rgba(255, 194, 180, 0.17) 100%
-    ),
-    url("/header_img.png") center/cover no-repeat;
-  box-shadow: 0 8px 42px rgba(255, 90, 49, 0.09),
-    0 1px 7px rgba(30, 35, 90, 0.06);
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  z-index: 1; /* <-- BIASANYA HEADER Z-INDEX RENDAH */
+.hero {
+  padding: var(--space-6) 0 var(--space-7);
 }
 
-.header:before {
+.hero-panel {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  align-items: center;
+  gap: var(--space-7);
+  background: var(--color-primary-light);
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--radius-lg);
+  padding: clamp(28px, 5vw, 56px);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-panel::before {
   content: "";
   position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    90deg,
-    rgba(28, 29, 41, 0.18) 18%,
-    rgba(220, 90, 49, 0.1) 100%
-  );
-  z-index: 1;
-  pointer-events: none;
-  /* z-index tidak terlalu tinggi, cukup 1 */
+  top: -120px;
+  right: -120px;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: var(--color-primary-soft);
 }
 
-.header-contents {
+.hero-copy {
   position: relative;
-  z-index: 2;
+  z-index: 1;
+}
+
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-caption);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary-border);
+  padding: 6px 12px;
+  border-radius: 999px;
+  margin-bottom: var(--space-4);
+}
+
+.hero-eyebrow-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+
+.hero-title {
+  font-size: var(--text-display);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+  color: var(--color-text);
+}
+
+.hero-title-accent {
+  color: var(--color-primary);
+}
+
+.hero-subtitle {
+  margin-top: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--text-body);
+  max-width: 480px;
+  line-height: 1.65;
+}
+
+.hero-actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+  flex-wrap: wrap;
+}
+
+.hero-stats {
+  display: flex;
+  gap: var(--space-6);
+  margin-top: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.hero-stats > div {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 1.3vw;
-  max-width: 520px;
-  width: 40vw;
-  margin-left: 5vw;
-  margin-right: auto;
-  padding: 3vw 0 3vw 0;
-  background: transparent;
 }
 
-.header-contents h2 {
+.hero-stats strong {
+  font-size: var(--text-h3);
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.hero-stats span {
+  font-size: var(--text-caption);
+  color: var(--color-text-muted);
+}
+
+.hero-visual {
+  position: relative;
+}
+
+.hero-img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.hero-float-card {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  box-shadow: var(--shadow-md);
+}
+
+.hero-float-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-float-card strong {
+  display: block;
+  font-size: var(--text-small);
   font-weight: 700;
-  color: #fff;
-  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.16), 0 1px 4px rgba(255, 60, 36, 0.07);
-  font-size: clamp(2.2rem, 4.5vw, 3.7rem);
-  line-height: 1.08;
-  letter-spacing: 0.01em;
-  margin-bottom: 0.7vw;
 }
 
-.header-contents p {
-  color: #fff;
-  font-size: clamp(1.09rem, 1.25vw, 1.2rem);
-  font-weight: 400;
-  opacity: 0.96;
-  text-shadow: 0 2px 9px rgba(30, 33, 90, 0.07);
-  margin-bottom: 1.2vw;
+.hero-float-card span {
+  font-size: var(--text-caption);
+  color: var(--color-text-muted);
 }
 
-.header-contents button {
-  border: none;
-  color: #fff;
-  font-weight: 700;
-  padding: 1.2vw 2.8vw;
-  background: linear-gradient(90deg, #FF9800 70%, #8b3903 120%);
-  font-size: clamp(1.02rem, 1.14vw, 1.18rem);
-  border-radius: 50px;
-  box-shadow: 0 4px 22px rgba(255, 60, 36, 0.12);
-  letter-spacing: 0.01em;
-  margin-top: 8px;
-  cursor: pointer;
-  transition: background 0.17s, box-shadow 0.14s, transform 0.13s;
-  outline: none;
-}
+/* ============ RESPONSIVE ============ */
+@media (max-width: 900px) {
+  .hero-panel {
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+  }
 
-.header-contents button:hover,
-.header-contents button:focus {
-  background: linear-gradient(90deg,#ff8d8d 60%,#ff5027 140%);
-  box-shadow: 0 7px 32px rgba(255, 60, 36, 0.15);
-  color: #fff;
-  transform: scale(1.04) translateY(-1.5px);
-}
-
-/* RESPONSIVE */
-@media (max-width: 950px) {
-  .header-contents {
-    max-width: 80vw;
-    width: 78vw;
-    margin-left: 4vw;
-    padding: 4vw 0;
+  .hero-visual {
+    max-width: 520px;
   }
 }
-@media (max-width: 700px) {
-  .header {
+
+@media (max-width: 480px) {
+  .hero {
+    padding: var(--space-4) 0 var(--space-6);
+  }
+
+  .hero-panel {
+    padding: 24px 20px;
+  }
+
+  .hero-actions {
     flex-direction: column;
-    min-height: 220px;
-    border-radius: 13px;
-    margin: 16px 0 17px 0;
-    width: 99vw;
-    box-shadow: 0 4px 10px rgba(255, 60, 36, 0.05);
-    align-items: flex-end;
+    align-items: stretch;
   }
-  .header-contents {
-    max-width: 98vw;
-    width: 98vw;
-    margin: 0;
-    padding: 13vw 4vw 4vw 4vw;
-    align-items: flex-start;
-    gap: 2vw;
-  }
-  .header-contents h2 {
-    font-size: 1.3rem;
-  }
-  .header-contents p {
-    font-size: 0.97rem;
-  }
-}
-
-/* ===== MODAL LOGIN HARUS Z-INDEX TINGGI ===== */
-.login-modal, .login-popup, .popup-bg, .modal-bg {
-  position: fixed !important;
-  z-index: 9999 !important;
 }

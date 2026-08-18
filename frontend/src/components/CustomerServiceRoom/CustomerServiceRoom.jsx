@@ -3,9 +3,10 @@ import { StoreContext } from "../../context/StoreContextProvider";
 import API from "../../api";
 import "./CustomerServiceRoom.css";
 import { toast } from "react-toastify";
+import { FiSend, FiHeadphones } from "react-icons/fi";
 
 const CustomerServiceRoom = () => {
-  const { user, token } = useContext(StoreContext);
+  const { user } = useContext(StoreContext);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(true);
@@ -20,7 +21,9 @@ const CustomerServiceRoom = () => {
 
   useEffect(() => {
     isMountedRef.current = true;
-    return () => { isMountedRef.current = false; };
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
   const fetchMessages = async () => {
@@ -103,26 +106,50 @@ const CustomerServiceRoom = () => {
   };
 
   return (
-    <div className="cs-user-room">
-      <div className="cs-user-room-box">
-        <div className="cs-user-room-header">Customer Service</div>
-        <div className="cs-user-room-body">
+    <div className="cs-room">
+      <div className="cs-room-box card">
+        <div className="cs-room-header">
+          <span className="cs-room-avatar">
+            <FiHeadphones size={18} />
+          </span>
+          <div className="cs-room-header-info">
+            <strong>Customer Service</strong>
+            <span className="cs-room-status">
+              <span className="status-dot" />
+              {status === "done" ? "Sesi selesai" : "Online — balasan dalam beberapa menit"}
+            </span>
+          </div>
+        </div>
+
+        <div className="cs-room-body">
           {!email ? (
-            <p className="cs-user-room-guest">
-              Silakan login terlebih dahulu untuk menghubungi Customer Service.
-            </p>
-          ) : loading ? (
-            <p>Loading...</p>
+            <div className="state-box">
+              <div className="state-icon">
+                <FiHeadphones size={22} />
+              </div>
+              <p>
+                Silakan login terlebih dahulu untuk menghubungi Customer
+                Service.
+              </p>
+            </div>
+          ) : loading && messages.length === 0 ? (
+            <div className="state-box">
+              <div className="spinner" />
+              <p>Memuat percakapan...</p>
+            </div>
           ) : (
             <>
-              <div className="cs-user-room-messages">
+              <div className="cs-room-messages">
+                {messages.length === 0 && (
+                  <div className="cs-room-empty">
+                    <p>Mulai percakapan dengan admin KantinGo 👋</p>
+                  </div>
+                )}
                 {messages.map((msg) => (
                   <div
-                    className={
-                      msg.sender === "user"
-                        ? "msg-bubble user"
-                        : "msg-bubble admin"
-                    }
+                    className={`msg-bubble ${
+                      msg.sender === "user" ? "user" : "admin"
+                    }`}
                     key={msg._id}
                   >
                     <div className="msg-meta">
@@ -141,14 +168,15 @@ const CustomerServiceRoom = () => {
               </div>
 
               {status === "done" ? (
-                <div className="cs-user-room-closed">
-                  Chat has been completed by admin.<br />
+                <div className="cs-room-closed">
+                  Chat has been completed by admin.
+                  <br />
                   {cooldown > 0
                     ? `Anda bisa kirim pesan baru dalam ${cooldown} menit lagi.`
                     : "Silakan reload untuk memulai chat baru."}
                 </div>
               ) : (
-                <form className="cs-user-room-input" onSubmit={handleSend}>
+                <form className="cs-room-input" onSubmit={handleSend}>
                   <input
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
@@ -156,15 +184,21 @@ const CustomerServiceRoom = () => {
                     disabled={status === "done"}
                     onFocus={() => setInputFocus(true)}
                     onBlur={() => setInputFocus(false)}
+                    aria-label="Message"
                   />
-                  <button type="submit" disabled={!input.trim()}>
-                    Send
+                  <button
+                    type="submit"
+                    disabled={!input.trim()}
+                    aria-label="Send message"
+                  >
+                    <FiSend size={16} />
                   </button>
                 </form>
               )}
             </>
           )}
-        </div>      </div>
+        </div>
+      </div>
     </div>
   );
 };

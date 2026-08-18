@@ -1,175 +1,232 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import "./Navbar.css";
 import { assets } from "../../assets/assets";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { StoreContext } from "../../context/StoreContextProvider";
+import { toast } from "react-toastify";
+import {
+  FiShoppingBag,
+  FiUser,
+  FiMenu,
+  FiX,
+  FiLogOut,
+  FiPackage,
+  FiMessageCircle,
+  FiHome,
+  FiList,
+  FiChevronDown,
+} from "react-icons/fi";
 
 const Navbar = ({ setShowLogin }) => {
-  const [menu, setMenu] = useState("menu");
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [notif, setNotif] = useState(null);
-
-  const { getTotalCartAmount, token, logout } = useContext(StoreContext);
+  const { token, logout, cartItems, user, url } = useContext(StoreContext);
   const navigate = useNavigate();
   const location = useLocation();
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const mobileRef = useRef(null);
+
+  const cartCount = Object.values(cartItems || {}).reduce(
+    (sum, qty) => sum + (Number(qty) || 0),
+    0
+  );
+
+  const avatar = user?.avatar
+    ? `${url}/uploads/${user.avatar}`
+    : null;
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileOpen(false);
+    setShowDropdown(false);
+  }, [location.pathname]);
 
   const handleLogout = () => {
     if (logout) logout();
     setShowDropdown(false);
-    setNotif("Anda berhasil logout!");
-    setTimeout(() => setNotif(null), 2000); 
+    setMobileOpen(false);
+    toast.success("Anda berhasil logout!");
     navigate("/");
   };
 
- 
-  const handleMenuClick = (menuKey, hash) => (e) => {
+  const handleMenuClick = (e) => {
     e.preventDefault();
-    setMenu(menuKey);
     if (location.pathname === "/") {
-   
       setTimeout(() => {
-        const el = document.getElementById(hash);
+        const el = document.getElementById("explore-menu");
         if (el) el.scrollIntoView({ behavior: "smooth" });
       }, 50);
     } else {
-      
-      navigate(`/#${hash}`);
+      navigate("/category/All");
     }
   };
 
-  return (
-    <div className="navbar">
-     
-      {notif && (
-        <div className="navbar-notif-popup">
-          <span>{notif}</span>
-        </div>
-      )}
+  const navLink = (to, label, icon, activePaths, onClick) => {
+    const isActive = activePaths.some((p) =>
+      p === "/" ? location.pathname === "/" : location.pathname.startsWith(p)
+    );
+    return (
+      <Link
+        to={to}
+        className={`nav-link ${isActive ? "active" : ""}`}
+        onClick={onClick}
+      >
+        {icon}
+        <span>{label}</span>
+      </Link>
+    );
+  };
 
-      <Link to="/">
-        <img src={assets.logokantin} alt="logo" className="logo" />
+  const userActions = (
+    <>
+      <Link to="/cart" className="nav-cart" aria-label="Cart">
+        <FiShoppingBag size={20} />
+        {cartCount > 0 && <span className="nav-cart-badge">{cartCount}</span>}
       </Link>
 
-      <ul className="navbar-menu">
-        <Link
-          to="/"
-          onClick={() => setMenu("home")}
-          className={menu === "home" ? "active" : ""}
+      {!token ? (
+        <button
+          className="btn btn-primary nav-login-btn"
+          onClick={() => setShowLogin(true)}
         >
-          home
-        </Link>
-        <a
-          href="/#explore-menu"
-          onClick={handleMenuClick("menu", "explore-menu")}
-          className={menu === "menu" ? "active" : ""}
-        >
-          menu
-        </a>
-        <a
-          href="/#app-download"
-          onClick={handleMenuClick("mobile-app", "app-download")}
-          className={menu === "mobile-app" ? "active" : ""}
-        >
-          mobile-app
-        </a>
-        <a
-          href="/#footer"
-          onClick={handleMenuClick("contact-us", "footer")}
-          className={menu === "contact-us" ? "active" : ""}
-        >
-          contact-us
-        </a>
-      </ul>
-
-      <div className="navbar-right">
-        {token && (
-          <div className="navbar-search-icon">
-            <Link to="/cart">
-              <img
-                src={assets.basket_icon || "/default-basket.png"}
-                alt="basket"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = "/default-basket.png";
-                }}
-              />
-            </Link>
-            {getTotalCartAmount() !== 0 && <div className="dot"></div>}
-          </div>
-        )}
-
-        {!token ? (
-          <button onClick={() => setShowLogin(true)}>sign in</button>
-        ) : (
-          <div className="navbar-profile">
-            <img
-              src={assets.settingv2 || "/settingv2.png"}
-              alt="profile"
-              onClick={() => setShowDropdown((prev) => !prev)}
-              style={{ cursor: "pointer", width: "60px", height: "60px" }}
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = "settingv2.png";
-              }}
-            />
-            {showDropdown && (
-              <ul className="nav-profile-dropdown">
-                <li
-                  onClick={() => {
-                    setShowDropdown(false);
-                    navigate("/Profile");
-                  }}
-                >
-                  <img
-                    src={assets.usercircle || "/usercircle.png"}
-                    alt="profile"
-                    style={{ width: "30px", height: "30px" }}
-                  />
-                  <p>Profile</p>
-                </li>
-                <hr />
-                <li
-                  onClick={() => {
-                    setShowDropdown(false);
-                    navigate("/myorder");
-                  }}
-                >
-                  <img
-                    src={assets.order || "/order.png"}
-                    alt="orders"
-                    style={{ width: "30px", height: "30px" }}
-                  />
-                  <p>Orders</p>
-                </li>
-                <hr />
-                <li
-                  onClick={() => {
-                    setShowDropdown(false);
-                    navigate("/customer-service");
-                  }}
-                >
-                  <img
-                    src={assets.customer || "/customer.png"}
-                    alt="orders"
-                    style={{ width: "30px", height: "30px" }}
-                  />
-                  <p>Customer Service</p>
-                </li>
-                <hr />
-                <li onClick={handleLogout}>
-                  <img
-                    src={assets.logout_icon || "/default-logout.png"}
-                    alt="logout"
-                    style={{ width: "30px", height: "30px" }}
-                  />
-                  <p>Logout</p>
-                </li>
-              </ul>
+          Sign In
+        </button>
+      ) : (
+        <div className="nav-profile" ref={dropdownRef}>
+          <button
+            className="nav-profile-btn"
+            onClick={() => setShowDropdown((prev) => !prev)}
+            aria-label="Account menu"
+            aria-expanded={showDropdown}
+          >
+            {avatar ? (
+              <img src={avatar} alt={user?.name || "user"} />
+            ) : (
+              <span className="nav-profile-fallback">
+                {(user?.name || "U").charAt(0).toUpperCase()}
+              </span>
             )}
-          </div>
-        )}
+            <FiChevronDown size={14} />
+          </button>
+
+          {showDropdown && (
+            <ul className="nav-profile-dropdown fade-in">
+              <li onClick={() => navigate("/profile")}>
+                <FiUser size={16} />
+                <p>Profile</p>
+              </li>
+              <li onClick={() => navigate("/myorder")}>
+                <FiPackage size={16} />
+                <p>Orders</p>
+              </li>
+              <li onClick={() => navigate("/customer-service")}>
+                <FiMessageCircle size={16} />
+                <p>Customer Service</p>
+              </li>
+              <li className="logout" onClick={handleLogout}>
+                <FiLogOut size={16} />
+                <p>Logout</p>
+              </li>
+            </ul>
+          )}
+        </div>
+      )}
+    </>
+  );
+
+  const mobileLinks = (
+    <>
+      <Link to="/" className="mobile-link">
+        <FiHome size={17} />
+        Home
+      </Link>
+      <a
+        href="/#explore-menu"
+        className="mobile-link"
+        onClick={handleMenuClick}
+      >
+        <FiList size={17} />
+        Menu
+      </a>
+      <Link to="/myorder" className="mobile-link">
+        <FiPackage size={17} />
+        Orders
+      </Link>
+      <Link to="/customer-service" className="mobile-link">
+        <FiMessageCircle size={17} />
+        Customer Service
+      </Link>
+      {!token && (
+        <button
+          className="btn btn-primary btn-block"
+          onClick={() => setShowLogin(true)}
+        >
+          Sign In
+        </button>
+      )}
+      {token && (
+        <button className="btn btn-ghost btn-block" onClick={handleLogout}>
+          <FiLogOut size={16} />
+          Logout
+        </button>
+      )}
+    </>
+  );
+
+  return (
+    <header className="navbar">
+      <div className="navbar-inner">
+        <Link to="/" className="navbar-logo" aria-label="KantinGo home">
+          <img src={assets.logokantin} alt="KantinGo" className="logo" />
+        </Link>
+
+        <nav className="navbar-menu" aria-label="Main navigation">
+          {navLink("/", "Home", <FiHome size={17} />, ["/"])}
+          {navLink(
+            "/category/All",
+            "Menu",
+            <FiList size={17} />,
+            ["/category", "/food"],
+            handleMenuClick
+          )}
+          {navLink("/myorder", "Orders", <FiPackage size={17} />, ["/myorder"])}
+          {navLink(
+            "/customer-service",
+            "Customer Service",
+            <FiMessageCircle size={17} />,
+            ["/customer-service"]
+          )}
+        </nav>
+
+        <div className="navbar-actions">{userActions}</div>
+
+        <button
+          className="navbar-burger"
+          onClick={() => setMobileOpen((prev) => !prev)}
+          aria-label="Toggle navigation menu"
+          aria-expanded={mobileOpen}
+        >
+          {mobileOpen ? <FiX size={22} /> : <FiMenu size={22} />}
+        </button>
       </div>
-    </div>
+
+      {mobileOpen && (
+        <div className="navbar-mobile fade-in" ref={mobileRef}>
+          {mobileLinks}
+        </div>
+      )}
+    </header>
   );
 };
 

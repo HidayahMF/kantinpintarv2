@@ -1,15 +1,14 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./Category.css";
 import { toast } from "react-toastify";
-import { assets } from "../../assets/assets";
-import { StoreContext } from "../../context/StoreContextProvider";
 import API from "../../api";
+import { FiUploadCloud } from "react-icons/fi";
 
 const Category = ({ onFoodAdded }) => {
-  const { token } = useContext(StoreContext);
   const [categories, setCategories] = useState([]);
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
   const [data, setData] = useState({
     name: "",
     description: "",
@@ -18,25 +17,20 @@ const Category = ({ onFoodAdded }) => {
     category: "",
   });
 
-  // Fetch kategori dari backend
   useEffect(() => {
     fetchCategories();
   }, []);
 
-  // Preview gambar setiap kali file berubah
   useEffect(() => {
     if (!image) {
       setPreview(null);
       return;
     }
-
     const objectUrl = URL.createObjectURL(image);
     setPreview(objectUrl);
-
     return () => URL.revokeObjectURL(objectUrl);
   }, [image]);
 
-  // Fungsi fetch kategori
   const fetchCategories = async () => {
     try {
       const res = await API.get("/category/list");
@@ -54,16 +48,10 @@ const Category = ({ onFoodAdded }) => {
     }
   };
 
-  // Handler submit tambah makanan
   const onSubmitHandler = async (event) => {
     event.preventDefault();
 
-    // Validasi stok
-    if (
-      data.stock === "" ||
-      isNaN(Number(data.stock)) ||
-      Number(data.stock) < 0
-    ) {
+    if (data.stock === "" || isNaN(Number(data.stock)) || Number(data.stock) < 0) {
       toast.error("Stock harus diisi dan minimal 0");
       return;
     }
@@ -76,12 +64,11 @@ const Category = ({ onFoodAdded }) => {
     formData.append("category", data.category);
     formData.append("image", image);
 
+    setSubmitting(true);
     try {
       const response = await API.post("/food/add", formData);
       if (response.data.success) {
         toast.success(response.data.message);
-
-        // Reset form
         setData({
           name: "",
           description: "",
@@ -91,7 +78,6 @@ const Category = ({ onFoodAdded }) => {
         });
         setImage(null);
         setPreview(null);
-
         if (onFoodAdded) onFoodAdded();
       } else {
         toast.error(response.data.message || "Gagal menambahkan makanan");
@@ -100,28 +86,30 @@ const Category = ({ onFoodAdded }) => {
       toast.error("Failed to add food");
       console.error("Add food error:", err);
     }
+    setSubmitting(false);
   };
 
-  // Handler input
   const onChangeHandler = (event) => {
     const { name, value } = event.target;
     setData((prev) => ({ ...prev, [name]: value }));
   };
 
   return (
-    <div className="add">
-      <form className="add-card" onSubmit={onSubmitHandler} autoComplete="off">
-        {/* Upload Gambar */}
+    <div className="add-page">
+      <form className="add-card card" onSubmit={onSubmitHandler} autoComplete="off">
         <div className="add-img-upload">
           <p className="add-label">Upload Image</p>
           <label htmlFor="image" className="add-img-label">
-            <img
-              src={preview || assets.upload_area}
-              alt="Upload Preview"
-              className="add-img-preview"
-            />
+            {preview ? (
+              <img src={preview} alt="Upload Preview" className="add-img-preview" />
+            ) : (
+              <span className="add-img-placeholder">
+                <FiUploadCloud size={28} />
+                <span>Click to upload</span>
+              </span>
+            )}
             <span className="add-img-hint">
-              {preview ? "Change Image" : "Click to upload"}
+              {preview ? "Change Image" : "Upload food image"}
             </span>
           </label>
           <input
@@ -134,103 +122,97 @@ const Category = ({ onFoodAdded }) => {
           />
         </div>
 
-        {/* Input Nama */}
         <div className="add-form-fields">
-          <label className="add-label" htmlFor="name">
-            Product name
-          </label>
-          <input
-            className="add-input"
-            onChange={onChangeHandler}
-            value={data.name}
-            type="text"
-            name="name"
-            id="name"
-            placeholder="Type here"
-            required
-          />
-        </div>
-
-        {/* Input Deskripsi */}
-        <div className="add-form-fields">
-          <label className="add-label" htmlFor="description">
-            Product description
-          </label>
-          <textarea
-            className="add-textarea"
-            onChange={onChangeHandler}
-            value={data.description}
-            name="description"
-            id="description"
-            rows="6"
-            placeholder="Write content here"
-            required
-          ></textarea>
-        </div>
-
-        {/* Kategori, Harga, dan Stok */}
-        <div className="add-category-price-row">
-          <div className="add-category">
-            <label className="add-label" htmlFor="category">
-              Product Category
-            </label>
-            <select
-              className="add-select"
-              onChange={onChangeHandler}
-              name="category"
-              id="category"
-              value={data.category}
-              required
-            >
-              {categories.map((cat) => (
-                <option key={cat._id} value={cat.name}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="add-price">
-            <label className="add-label" htmlFor="price">
-              Product price
-            </label>
+          <div className="form-field">
+            <label htmlFor="name">Product name</label>
             <input
-              className="add-input"
+              id="name"
+              className="input"
               onChange={onChangeHandler}
-              value={data.price}
-              type="number"
-              name="price"
-              id="price"
-              placeholder="Rp 20000"
+              value={data.name}
+              type="text"
+              name="name"
+              placeholder="Type here"
               required
-              min="0"
-              step="0.01"
             />
           </div>
 
-          <div className="add-stock">
-            <label className="add-label" htmlFor="stock">
-              Stock
-            </label>
-            <input
-              className="add-input add-stock-input"
+          <div className="form-field">
+            <label htmlFor="description">Product description</label>
+            <textarea
+              id="description"
+              className="textarea"
               onChange={onChangeHandler}
-              value={data.stock}
-              type="number"
-              name="stock"
-              id="stock"
-              placeholder="0"
+              value={data.description}
+              name="description"
+              rows="5"
+              placeholder="Write content here"
               required
-              min="0"
-              step="1"
-              style={{ background: "#f6f8fc" }}
             />
+          </div>
+
+          <div className="add-category-price-row">
+            <div className="form-field">
+              <label htmlFor="category">Product Category</label>
+              <select
+                id="category"
+                className="select"
+                onChange={onChangeHandler}
+                name="category"
+                value={data.category}
+                required
+              >
+                {categories.map((cat) => (
+                  <option key={cat._id} value={cat.name}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-field">
+              <label htmlFor="price">Product price</label>
+              <input
+                id="price"
+                className="input"
+                onChange={onChangeHandler}
+                value={data.price}
+                type="number"
+                name="price"
+                placeholder="Rp 20000"
+                required
+                min="0"
+                step="0.01"
+              />
+            </div>
+
+            <div className="form-field">
+              <label htmlFor="stock">Stock</label>
+              <input
+                id="stock"
+                className="input"
+                onChange={onChangeHandler}
+                value={data.stock}
+                type="number"
+                name="stock"
+                placeholder="0"
+                required
+                min="0"
+                step="1"
+              />
+            </div>
           </div>
         </div>
 
-        {/* Tombol Submit */}
-        <button type="submit" className="add-btn">
-          ADD
+        <button type="submit" className="btn btn-primary" disabled={submitting}>
+          {submitting ? (
+            <>
+              <span className="btn-spinner" />
+              Adding...
+            </>
+          ) : (
+            "Add Food"
+          )}
         </button>
       </form>
     </div>

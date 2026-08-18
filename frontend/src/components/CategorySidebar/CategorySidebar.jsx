@@ -12,8 +12,6 @@ const CategorySidebar = ({ selectedCategory, onCategorySelect, token }) => {
     const fetchCategories = async () => {
       try {
         const res = await API.get("/category/list");
-
-        // Karena backend return { success, data: categories }
         if (res.data.success) {
           setCategories(res.data.data);
         } else {
@@ -32,22 +30,46 @@ const CategorySidebar = ({ selectedCategory, onCategorySelect, token }) => {
     fetchCategories();
   }, [token]);
 
-  if (loading) return <p>Loading categories...</p>;
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
+  if (loading) {
+    return (
+      <div className="category-chips" aria-label="Category filter">
+        <span className="skeleton" style={{ width: 64, height: 34 }} />
+        <span className="skeleton" style={{ width: 80, height: 34 }} />
+        <span className="skeleton" style={{ width: 72, height: 34 }} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="category-chips" aria-label="Category filter">
+        <button
+          className={`chip ${selectedCategory === "All" ? "active" : ""}`}
+          onClick={() => onCategorySelect("All")}
+        >
+          All
+        </button>
+      </div>
+    );
+  }
+
+  const options = [{ name: "All" }, ...categories];
 
   return (
-    <div className="category-sidebar">
-      <select
-        value={selectedCategory}
-        onChange={(e) => onCategorySelect(e.target.value)}
-      >
-        <option value="All">All</option>
-        {categories.map((cat) => (
-          <option key={cat._id} value={cat.name}>
+    <div className="category-chips" aria-label="Category filter">
+      {options.map((cat) => {
+        const isActive = selectedCategory === cat.name;
+        return (
+          <button
+            key={cat._id || cat.name}
+            className={`chip ${isActive ? "active" : ""}`}
+            onClick={() => onCategorySelect(cat.name)}
+            aria-pressed={isActive}
+          >
             {cat.name}
-          </option>
-        ))}
-      </select>
+          </button>
+        );
+      })}
     </div>
   );
 };

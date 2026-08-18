@@ -1,10 +1,16 @@
-.app {
+.app-shell {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
-.app > div {
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-main > .app {
   flex: 1;
 }
 

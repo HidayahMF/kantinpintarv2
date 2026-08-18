@@ -1,17 +1,32 @@
 import React, { useContext, useEffect, useState } from "react";
 import { StoreContext } from "../../context/StoreContextProvider";
 import { toast } from "react-toastify";
-import { assets } from "../../assets/assets";
-import API from "../../api"; // ✅ gunakan file API.js kamu
+import API from "../../api";
 import "./Orders.css";
 import { formatRp } from "../../utils/format";
+import ConfirmDialog from "../../components/ConfirmDialog/ConfirmDialog";
+import {
+  FiShoppingBag,
+  FiTrash2,
+  FiMapPin,
+  FiPhone,
+  FiUser,
+} from "react-icons/fi";
 
 const ORDERS_PER_PAGE = 5;
+
+const STATUS_OPTIONS = [
+  { value: "Food Processing", label: "Food Processing" },
+  { value: "Out For Delivery", label: "Out For Delivery" },
+  { value: "Delivered", label: "Delivered" },
+];
 
 const Orders = () => {
   const { token } = useContext(StoreContext);
   const [orders, setOrders] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const totalPages = Math.ceil(orders.length / ORDERS_PER_PAGE);
 
@@ -21,7 +36,6 @@ const Orders = () => {
     const fetchAllOrders = async () => {
       try {
         const res = await API.get(`/order/list`);
-
         if (res.data.success) {
           setOrders(res.data.orders || []);
         } else {
@@ -29,10 +43,7 @@ const Orders = () => {
         }
       } catch (error) {
         toast.error("Something went wrong");
-        console.error(
-          "Order fetch error:",
-          error.response?.data || error.message
-        );
+        console.error("Order fetch error:", error.response?.data || error.message);
       }
     };
 
@@ -45,15 +56,13 @@ const Orders = () => {
       return;
     }
     try {
-      const res = await API.post(
-        `/order/status`,
-        { orderId, status: event.target.value }
-      );
+      const res = await API.post(`/order/status`, {
+        orderId,
+        status: event.target.value,
+      });
 
       if (res.data.success) {
         toast.success("Status updated");
-
-        // Refresh data setelah update
         const res2 = await API.get(`/order/list`);
         if (res2.data.success) {
           setOrders(res2.data.orders || []);
@@ -67,131 +76,179 @@ const Orders = () => {
     }
   };
 
-  const handleDelete = async (orderId) => {
-    if (!window.confirm("Delete this order?")) return;
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await API.delete(`/order/delete/${orderId}`);
+      await API.delete(`/order/delete/${deleteTarget}`);
       toast.success("Order deleted!");
-      setOrders((prev) => prev.filter((order) => order._id !== orderId));
+      setOrders((prev) => prev.filter((order) => order._id !== deleteTarget));
     } catch (err) {
       toast.error(err?.response?.data?.message || "Failed to delete order");
     }
+    setDeleting(false);
+    setDeleteTarget(null);
   };
 
-  // Urutkan orders terbaru ke terlama
   const sortedOrders = [...orders].sort(
     (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
   );
   const startIndex = (currentPage - 1) * ORDERS_PER_PAGE;
-  const currentOrders = sortedOrders.slice(
-    startIndex,
-    startIndex + ORDERS_PER_PAGE
-  );
+  const currentOrders = sortedOrders.slice(startIndex, startIndex + ORDERS_PER_PAGE);
 
-  if (!token) return <div>Loading orders...</div>;
+  if (!token) {
+    return (
+      <div className="state-box">
+        <div className="spinner" />
+        <p>Memuat pesanan...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="order add">
-      <div className="order-header"></div>
-      <div className="order-list">
-        {orders.length === 0 && <p>No orders available</p>}
-        {currentOrders.map((order) => (
-          <div key={order._id} className="order-item">
-            <img src={assets.parcel_icon} alt="parcel icon" />
-            <div>
-              <p className="order-item-food">
-                {(order.items || []).map((item, idx) => (
-                  <span key={idx}>
-                    {item.name} x{item.quantity}
-                    {idx < order.items.length - 1 && ", "}
-                  </span>
-                ))}
-              </p>
-              <p className="order-item-name">
-                {(order.address?.firstName || "") +
-                  " " +
-                  (order.address?.lastName || "")}
-              </p>
-              <div className="order-item-address">
-                <p>{order.address?.street || ""}</p>
-                <p>
-                  {(order.address?.city || "") +
-                    ", " +
-                    (order.address?.state || "") +
-                    ", " +
-                    (order.address?.country || "") +
-                    ", " +
-                    (order.address?.zipcode || "")}
-                </p>
-              </div>
-              <p className="order-item-phone">{order.address?.phone || ""}</p>
-            </div>
-            <div className="order-item-side">
-              <p>
-                <span className="order-side-label">Items:</span>{" "}
-                {order.items.length}
-              </p>
-              <p>
-                <span className="order-side-label">Total:</span>{" "}
-                <span className="order-amount">
-                  {formatRp(order.amount)}
-                </span>
-              </p>
-              <select
-                onChange={(event) => statusHandler(event, order._id)}
-                value={order.status || "Food Processing"}
-                className="order-status-select"
-                style={{
-                  marginBottom: order.status === "Delivered" ? "10px" : 0,
-                }}
-              >
-                <option value="Food Processing">Food Processing</option>
-                <option value="Out For Delivery">Out For Delivery</option>
-                <option value="Delivered">Delivered</option>
-              </select>
+    <div className="admin-orders">
+      {orders.length === 0 ? (
+        <div className="state-box">
+          <div className="state-icon">
+            <FiShoppingBag size={24} />
+          </div>
+          <h3>Belum ada pesanan</h3>
+          <p>Pesanan dari pelanggan akan muncul di sini.</p>
+        </div>
+      ) : (
+        <>
+          <div className="orders-list">
+            {currentOrders.map((order) => {
+              const customerName =
+                (order.address?.firstName || "") +
+                " " +
+                (order.address?.lastName || "");
+              const isCompleted = order.paymentStatus === "completed";
 
+              return (
+                <div key={order._id} className="order-item card">
+                  <div className="order-item-main">
+                    <div className="order-item-icon">
+                      <FiShoppingBag size={18} />
+                    </div>
+                    <div className="order-item-content">
+                      <div className="order-item-top">
+                        <strong className="order-id">
+                          Order #{String(order._id || "").slice(-6)}
+                        </strong>
+                        <span className="order-date">
+                          {order.createdAt
+                            ? new Date(order.createdAt).toLocaleString("id-ID", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })
+                            : "-"}
+                        </span>
+                      </div>
+
+                      <p className="order-items">
+                        {(order.items || []).map((item, idx) => (
+                          <span key={idx}>
+                            {item.name} x{item.quantity}
+                            {idx < order.items.length - 1 && ", "}
+                          </span>
+                        ))}
+                      </p>
+
+                      <div className="order-customer">
+                        <span>
+                          <FiUser size={13} /> {customerName || "-"}
+                        </span>
+                        {order.address?.phone && (
+                          <span>
+                            <FiPhone size={13} /> {order.address.phone}
+                          </span>
+                        )}
+                      </div>
+
+                      {order.address?.street && (
+                        <p className="order-address">
+                          <FiMapPin size={13} />
+                          {order.address.street}, {order.address.city},{" "}
+                          {order.address.state}, {order.address.country},{" "}
+                          {order.address.zipcode}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="order-item-side">
+                    <div className="order-totals">
+                      <span className="order-qty">{order.items.length} items</span>
+                      <strong>{formatRp(order.amount)}</strong>
+                    </div>
+                    <div className="order-status-block">
+                      <span className={`badge ${isCompleted ? "badge-success" : "badge-warning"}`}>
+                        {isCompleted ? "Paid" : "Unpaid"}
+                      </span>
+                      <select
+                        onChange={(event) => statusHandler(event, order._id)}
+                        value={order.status || "Food Processing"}
+                        className="select order-status-select"
+                        aria-label="Update order status"
+                      >
+                        {STATUS_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <button
+                      className="btn btn-ghost btn-sm order-delete-btn"
+                      onClick={() => setDeleteTarget(order._id)}
+                    >
+                      <FiTrash2 size={14} />
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {orders.length > ORDERS_PER_PAGE && (
+            <div className="pagination">
               <button
-                className="delete-order-btn"
-                onClick={() => handleDelete(order._id)}
+                className="btn btn-ghost btn-sm"
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                disabled={currentPage === 1}
               >
-                🗑 Delete
+                &larr; Prev
+              </button>
+              <span className="pagination-info">
+                Page <b>{currentPage}</b> of <b>{totalPages}</b>
+              </span>
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                disabled={currentPage === totalPages}
+              >
+                Next &rarr;
               </button>
             </div>
-          </div>
-        ))}
+          )}
+        </>
+      )}
 
-        {orders.length > ORDERS_PER_PAGE && (
-          <div
-            className="pagination-controls"
-            style={{ textAlign: "center", margin: "20px 0" }}
-          >
-            <button
-              className="icon-btn"
-              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-              disabled={currentPage === 1}
-              style={{ marginRight: 8, opacity: currentPage === 1 ? 0.5 : 1 }}
-              title="Previous"
-            >
-              ⬅️
-            </button>
-            <span>
-              Page {currentPage} of {totalPages}
-            </span>
-            <button
-              className="icon-btn"
-              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              style={{
-                marginLeft: 8,
-                opacity: currentPage === totalPages ? 0.5 : 1,
-              }}
-              title="Next"
-            >
-              ➡️
-            </button>
-          </div>
-        )}
-      </div>
+      {deleteTarget && (
+        <ConfirmDialog
+          title="Delete this order?"
+          message="Pesanan akan dihapus permanen. Lanjutkan?"
+          confirmText="Delete"
+          busy={deleting}
+          onConfirm={handleDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
     </div>
   );
 };
