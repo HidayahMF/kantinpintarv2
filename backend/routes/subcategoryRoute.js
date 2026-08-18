@@ -6,13 +6,17 @@ import {
   updateSubCategory,
   deleteSubCategory,
 } from "../controllers/subcategoryController.js";
+import authAdminMiddleware from "../middleware/authAdminMiddleware.js";
 
 const router = express.Router();
 
+// Public
 router.get("/list", getSubCategories);
 router.get("/by-category/:categoryId", getSubCategoriesByCategory);
-router.post("/add", createSubCategory);
-router.put("/:id", updateSubCategory);
-router.delete("/:id", deleteSubCategory);
+
+// Admin only
+router.post("/add", authAdminMiddleware, createSubCategory);
+router.put("/:id", authAdminMiddleware, updateSubCategory);
+router.delete("/:id", authAdminMiddleware, deleteSubCategory);
 
 export default router;

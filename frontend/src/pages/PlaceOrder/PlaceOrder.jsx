@@ -1,14 +1,15 @@
 import React, { useContext, useEffect, useState } from "react";
 import "./PlaceOrder.css";
 import { StoreContext } from "../../context/StoreContextProvider";
-import axios from "axios";
+import API from "../../api";
 import { useNavigate } from "react-router-dom";
 import { formatRp } from "../../utils/format";
+import { toast } from "react-toastify";
 
 const SHIPPING_FEE = 2000;
 
 const PlaceOrder = () => {
-  const { getTotalCartAmount, token, foodList, cartItems, url, setCartItems } =
+  const { getTotalCartAmount, token, foodList, cartItems, setCartItems } =
     useContext(StoreContext);
 
   const [data, setData] = useState({
@@ -45,7 +46,7 @@ const PlaceOrder = () => {
     e.preventDefault();
 
     if (!token) {
-      alert("Please login first.");
+      toast.warning("Please login first.");
       return;
     }
 
@@ -62,7 +63,7 @@ const PlaceOrder = () => {
       })) || [];
 
     if (orderItems.length === 0) {
-      alert("Your cart is empty.");
+      toast.warning("Your cart is empty.");
       return;
     }
 
@@ -71,9 +72,7 @@ const PlaceOrder = () => {
       items: orderItems,
     };
     try {
-      const res = await axios.post(`${url}/api/order/place`, orderData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await API.post("/order/place", orderData);
 
       if (res.data.success) {
         // Bersihkan cart
@@ -88,17 +87,17 @@ const PlaceOrder = () => {
               window.location.href = `/verify?order_id=${order_id}`;
             },
             onPending: () => {
-              alert(
+              toast.info(
                 "Pembayaran sedang diproses. Silakan selesaikan pembayaran Anda."
               );
               window.location.href = `/verify?order_id=${order_id}&status=pending`;
             },
             onError: () => {
-              alert("Pembayaran gagal. Silakan coba lagi.");
+              toast.error("Pembayaran gagal. Silakan coba lagi.");
               window.location.href = `/verify?order_id=${order_id}&status=failed`;
             },
             onClose: () => {
-              alert(
+              toast.info(
                 "Anda menutup pembayaran. Pesanan tetap dibuat, silakan selesaikan pembayaran lewat halaman pesanan."
               );
               navigate("/myorder");
@@ -107,15 +106,15 @@ const PlaceOrder = () => {
         } else if (redirect_url) {
           window.location.href = redirect_url;
         } else {
-          alert("Order successfully created!");
+          toast.success("Order successfully created!");
           navigate("/myorder");
         }
       } else {
-        alert("Failed to process order.");
+        toast.error("Failed to process order.");
       }
     } catch (err) {
       console.error("Order Error:", err);
-      alert(
+      toast.error(
         err?.response?.data?.message ||
           "An error occurred while processing the order."
       );

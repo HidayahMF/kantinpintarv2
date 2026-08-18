@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
+import userModel from "../models/userModel.js";
 
-const authAdminMiddleware = (req, res, next) => {
+const authAdminMiddleware = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
@@ -9,16 +10,15 @@ const authAdminMiddleware = (req, res, next) => {
     }
 
     const token = authHeader.split(" ")[1];
-
-  
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    if (!decoded.isAdmin) {
+    const user = await userModel.findById(decoded.id).select("isAdmin");
+    if (!user || !user.isAdmin) {
       return res.status(403).json({ success: false, message: "Admin access required" });
     }
 
     req.userId = decoded.id;
-    req.isAdmin = decoded.isAdmin;
+    req.isAdmin = true;
 
     next();
   } catch (error) {

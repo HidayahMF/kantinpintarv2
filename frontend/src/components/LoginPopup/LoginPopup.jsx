@@ -1,13 +1,8 @@
 import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { StoreContext } from "../../context/StoreContextProvider";
-import axios from "axios";
+import API from "../../api";
 import "./LoginPopup.css";
-
-// Axios instance
-const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:4000",
-});
 
 const LoginPopup = ({ setShowLogin }) => {
   const navigate = useNavigate();
@@ -29,13 +24,13 @@ const LoginPopup = ({ setShowLogin }) => {
     let payload = {};
 
     if (currState === "Login") {
-      endpoint = "/api/user/login";
+      endpoint = "/user/login";
       payload = { email: data.email, password: data.password };
     } else if (currState === "Sign Up") {
-      endpoint = "/api/user/register";
+      endpoint = "/user/register";
       payload = { name: data.name, email: data.email, password: data.password };
     } else if (currState === "Admin") {
-      endpoint = "/api/user/login-admin";
+      endpoint = "/user/login-admin";
       payload = { email: data.email, password: data.password };
     }
 
@@ -62,7 +57,7 @@ const LoginPopup = ({ setShowLogin }) => {
       // LOGIN ADMIN
       if (currState === "Admin") {
         setNotif({ msg: "Login sebagai Admin berhasil!", type: "admin" });
-        const adminUrl = new URL("http://localhost:5174");
+        const adminUrl = new URL(import.meta.env.VITE_ADMIN_URL || "http://localhost:5174");
         adminUrl.searchParams.set("token", res.data.token);
         adminUrl.searchParams.set("isAdmin", "true");
         setTimeout(() => {

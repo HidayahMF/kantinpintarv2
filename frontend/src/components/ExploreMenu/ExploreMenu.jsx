@@ -1,57 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import "./ExploreMenu.css";
 import { menu_list } from "../../assets/assets";
 
-
 const ExploreMenu = ({ category, setCategory }) => {
-  const [categories, setCategories] = useState([]);
-  const [subCategories, setSubCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedSubCategory, setSelectedSubCategory] = useState("");
-
-
-
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-       
-      } catch (error) {
-        console.error("Failed to fetch categories:", error);
-      }
-    };
-    fetchCategories();
-  }, []);
-
-  
-  useEffect(() => {
-    const fetchSubCategories = async () => {
-      if (!selectedCategory) {
-        setSubCategories([]);
-        return;
-      }
-
-      try {
-       
-      } catch (error) {
-        console.error("Failed to fetch subcategories:", error);
-      }
-    };
-
-    fetchSubCategories();
-  }, [selectedCategory]);
-
- 
   const handleBack = () => {
     setCategory("All");
-   
   };
 
   return (
     <div className="explore-menu" id="explore-menu">
       <div className="explore-menu-header">
         <h1>Explore our menu</h1>
-        
         {category !== "All" && (
           <button className="back-to-food-btn" onClick={handleBack}>
             &larr; Back to Food Display

@@ -35,6 +35,11 @@ const StoreContextProvider = ({ children }) => {
     if (tokenFromUrl) localStorage.setItem("token", tokenFromUrl);
     if (isAdminFromUrl) localStorage.setItem("isAdmin", isAdminFromUrl);
 
+    // Clean URL params
+    if (tokenFromUrl || isAdminFromUrl) {
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+
     setToken(t);
     setIsAdmin(a);
     setInitialized(true);
@@ -56,9 +61,7 @@ const StoreContextProvider = ({ children }) => {
 
     const fetchUserInfo = async () => {
       try {
-        const res = await API.get("/user/me", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await API.get("/user/me");
         if (res.data.success && res.data.user) {
           setUser(res.data.user);
           setIsAdmin(res.data.user.isAdmin === true);
@@ -67,7 +70,7 @@ const StoreContextProvider = ({ children }) => {
           setIsAdmin(false);
         }
       } catch (err) {
-        console.error("❌ Fetch user error:", err.message);
+        console.error("Fetch user error:", err.message);
         setUser(null);
         setIsAdmin(false);
       }
@@ -86,23 +89,18 @@ const StoreContextProvider = ({ children }) => {
       } else if (res.data?.success && Array.isArray(res.data.data)) {
         setFoodList(res.data.data);
       } else {
-        console.warn("⚠️ Unexpected food list response:", res.data);
         setFoodList([]);
       }
     } catch (err) {
-      console.error("❌ Error fetching food list:", err.message);
+      console.error("Error fetching food list:", err.message);
       setFoodList([]);
     }
   }, []);
 
   // === LOAD CART DATA ===
-  const loadCartData = async (tkn) => {
+  const loadCartData = async () => {
     try {
-      const res = await API.post(
-        "/cart/get",
-        {},
-        { headers: { Authorization: `Bearer ${tkn}` } }
-      );
+      const res = await API.get("/cart/get");
       setCartItems(res.data.cartData || {});
     } catch {
       setCartItems({});
@@ -116,9 +114,7 @@ const StoreContextProvider = ({ children }) => {
       return;
     }
     try {
-      const res = await API.get("/order/userorders", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await API.get("/order/userorders");
       if (res.data.success && Array.isArray(res.data.orders)) {
         setOrders(res.data.orders);
       } else {
@@ -145,13 +141,9 @@ const StoreContextProvider = ({ children }) => {
 
     if (token) {
       try {
-        await API.post(
-          "/cart/add",
-          { itemId },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await API.post("/cart/add", { itemId });
       } catch (err) {
-        console.error("❌ Error adding to cart:", err.message);
+        console.error("Error adding to cart:", err.message);
       }
     }
   };
@@ -166,13 +158,9 @@ const StoreContextProvider = ({ children }) => {
 
     if (token) {
       try {
-        await API.post(
-          "/cart/remove",
-          { itemId },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await API.post("/cart/remove", { itemId });
       } catch (err) {
-        console.error("❌ Error removing from cart:", err.message);
+        console.error("Error removing from cart:", err.message);
       }
     }
   };
@@ -180,11 +168,11 @@ const StoreContextProvider = ({ children }) => {
   // === ADD REVIEW ===
   const addReview = async (foodId, review) => {
     try {
-      const res = await API.post(
-        "/food/review",
-        { foodId, rating: review?.rating, comment: review?.comment },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await API.post("/food/review", {
+        foodId,
+        rating: review?.rating,
+        comment: review?.comment,
+      });
       if (res.data?.success && res.data.food) {
         setFoodList((prev) =>
           prev.map((food) =>
@@ -197,7 +185,7 @@ const StoreContextProvider = ({ children }) => {
       }
       return res.data;
     } catch (err) {
-      console.error("❌ Error adding review:", err.message);
+      console.error("Error adding review:", err.message);
       throw err;
     }
   };
@@ -216,7 +204,7 @@ const StoreContextProvider = ({ children }) => {
     const init = async () => {
       await fetchFoodList();
       if (token) {
-        await loadCartData(token);
+        await loadCartData();
         await fetchOrders();
       }
     };
@@ -233,12 +221,12 @@ const StoreContextProvider = ({ children }) => {
   const reloadAll = async () => {
     await fetchFoodList();
     if (token) {
-      await loadCartData(token);
+      await loadCartData();
       await fetchOrders();
     }
   };
 
-  // === LOGIN & LOGOUT HANDLERS (untuk menghindari "login is not a function") ===
+  // === LOGIN & LOGOUT HANDLERS ===
   const login = (newToken, isAdminFlag = false) => {
     setToken(newToken);
     setIsAdmin(isAdminFlag);
@@ -280,8 +268,8 @@ const StoreContextProvider = ({ children }) => {
         reloadAll,
         orders,
         fetchOrders,
-        login, // ✅ ditambahkan agar tidak error
-        logout, // ✅ tambahan opsional
+        login,
+        logout,
       }}
     >
       {children}

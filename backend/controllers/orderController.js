@@ -2,7 +2,7 @@
 import midtransClient from "midtrans-client";
 import mongoose from "mongoose";
 import crypto from "crypto";
-import Order from "../models/orderModell.js";
+import Order from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
 import Food from "../models/foodModel.js"; // pastikan ada model Food
 
@@ -50,9 +50,6 @@ const formatMidtransDate = (date) => {
 // ============================
 export const placeOrder = async (req, res) => {
   try {
-    console.log("📦 placeOrder called - body:", req.body);
-    console.log("👤 userId from middleware:", req.userId);
-
     const { items, address } = req.body;
     const userId = req.userId;
 
@@ -71,8 +68,12 @@ export const placeOrder = async (req, res) => {
     const itemDetails = [];
     for (const item of items) {
       const food = await Food.findById(item._id).catch(() => null);
-      const price = food ? food.price : Number(item.price) || 0;
+      if (!food)
+        return res.status(400).json({ success: false, message: `Food not found: ${item._id}` });
       const qty = Math.max(1, Number(item.quantity) || 1);
+      if (food.stock < qty)
+        return res.status(400).json({ success: false, message: `Insufficient stock for "${food.name}": available ${food.stock}, requested ${qty}` });
+      const price = food.price;
       grossAmount += price * qty;
       itemDetails.push({
         id: String(item._id),
@@ -146,19 +147,24 @@ export const placeOrder = async (req, res) => {
     const transaction = await snap.createTransaction(parameter);
     const { token, redirect_url } = transaction;
 
-    // Simpan order ke database
+    // Simpan order ke database — gunakan harga dari DB, bukan dari request body
+    const orderItems = items.map((item) => {
+      const dbItem = itemDetails.find((d) => d.id === String(item._id));
+      return {
+        _id: item._id,
+        name: item.name,
+        price: dbItem ? dbItem.price : 0,
+        quantity: Number(item.quantity),
+        image: item.image,
+        category: item.category,
+      };
+    });
+
     const newOrder = new Order({
       userId,
       amount: grossAmount,
       address,
-      items: items.map((item) => ({
-        _id: item._id,
-        name: item.name,
-        price: Number(item.price),
-        quantity: Number(item.quantity),
-        image: item.image,
-        category: item.category,
-      })),
+      items: orderItems,
       paymentStatus: "pending",
       midtransOrderId: order_id,
     });
@@ -173,7 +179,6 @@ export const placeOrder = async (req, res) => {
     }
 
     console.log("✅ Order created:", newOrder._id, "| order_id:", order_id);
-    console.log("💳 Midtrans token:", token);
 
     return res.status(201).json({
       success: true,
@@ -183,11 +188,10 @@ export const placeOrder = async (req, res) => {
       order_id,
     });
   } catch (error) {
-    console.error("❌ Midtrans transaction error:", error);
+    console.error("❌ Midtrans transaction error:", error.message);
     return res.status(500).json({
       success: false,
-      message: error.message || "Failed to create order",
-      detail: error?.ApiResponse || error?.error_messages || null,
+      message: "Failed to create order. Please try again.",
     });
   }
 };
@@ -203,8 +207,6 @@ export const verifyOrder = async (req, res) => {
         .status(400)
         .json({ success: false, message: "order_id required" });
 
-    console.log("[DEBUG] Verify order:", order_id);
-
     const order = await Order.findOne({ midtransOrderId: order_id });
     if (!order)
       return res
@@ -214,13 +216,6 @@ export const verifyOrder = async (req, res) => {
     const status = await core.transaction.status(order_id);
     const transactionStatus = status.transaction_status;
     const paymentType = status.payment_type;
-
-    console.log(
-      "[DEBUG] Midtrans status:",
-      transactionStatus,
-      "| fraud:",
-      status.fraud_status
-    );
 
     // settlement/capture = lunas
     if (
@@ -273,29 +268,35 @@ export const verifyOrder = async (req, res) => {
         message: "Payment is still pending.",
       });
     }
-    console.error("❌ Verify error:", error);
+    console.error("❌ Verify error:", error.message);
     return res
       .status(500)
       .json({ success: false, message: "Error verifying payment." });
   }
 };
 
-// Helper: kurangi stok (idempotent)
+// Helper: kurangi stok (atomic via findOneAndUpdate + idempotent via stockDeducted flag)
 const deductStock = async (order) => {
+  if (order.stockDeducted) return;
   for (const orderedItem of order.items) {
     try {
-      const food = await Food.findById(orderedItem._id);
-      if (food) {
-        const oldStock = food.stock || 0;
-        food.stock = Math.max(0, oldStock - orderedItem.quantity);
-        await food.save();
-      } else {
-        console.warn("Food not found:", orderedItem._id);
+      const result = await Food.findOneAndUpdate(
+        { _id: orderedItem._id, stock: { $gte: orderedItem.quantity } },
+        { $inc: { stock: -orderedItem.quantity } },
+        { new: true }
+      );
+      if (!result) {
+        const food = await Food.findById(orderedItem._id).select("name stock");
+        console.error(
+          `Stock deduction failed for ${orderedItem._id}: ` +
+          `available ${food ? food.stock : "not found"}, requested ${orderedItem.quantity}`
+        );
       }
     } catch (err) {
       console.error("Error updating food stock:", err.message);
     }
   }
+  order.stockDeducted = true;
 };
 
 // ============================
@@ -312,18 +313,20 @@ export const midtransNotification = async (req, res) => {
       payment_type,
     } = req.body || {};
 
-    if (!order_id) return res.status(400).json({ message: "order_id required" });
+    if (!order_id) return res.status(200).json({ status: "ok" });
 
-    // Validasi signature: sha512(order_id + status_code + gross_amount + serverKey)
     const raw = `${order_id}${status_code}${gross_amount}${serverKey}`;
     const expected = crypto.createHash("sha512").update(raw).digest("hex");
     if (expected !== signature_key) {
       console.warn("⚠️ Invalid Midtrans signature for", order_id);
-      return res.status(403).json({ message: "Invalid signature" });
+      return res.status(200).json({ status: "ok" });
     }
 
     const order = await Order.findOne({ midtransOrderId: order_id });
-    if (!order) return res.status(404).json({ message: "Order not found." });
+    if (!order) {
+      console.warn("⚠️ Webhook: order not found", order_id);
+      return res.status(200).json({ status: "ok" });
+    }
 
     if (transaction_status === "settlement" || transaction_status === "capture") {
       if (order.paymentStatus !== "completed") {
@@ -346,8 +349,8 @@ export const midtransNotification = async (req, res) => {
 
     return res.status(200).json({ status: "ok" });
   } catch (error) {
-    console.error("❌ Notification error:", error);
-    return res.status(500).json({ message: "Internal error" });
+    console.error("❌ Notification error:", error.message);
+    return res.status(200).json({ status: "ok" });
   }
 };
 

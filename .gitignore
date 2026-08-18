@@ -7,10 +7,15 @@ dist-ssr/
 
 # Env (secrets)
 backend/.env
+frontend/.env
+admin/.env
 
 # Logs
 *.log
 logs/
+
+# Uploads
+backend/uploads/
 
 # Junk files
 bfg-1.15.0.jar

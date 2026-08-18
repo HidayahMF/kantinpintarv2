@@ -65,9 +65,7 @@ const CustomerService = () => {
 
     setLoading(true);
     try {
-      await API.post("/message", form, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await API.post("/message", form);
       setSent(true);
       setForm({ ...form, message: "" });
     } catch (err) {

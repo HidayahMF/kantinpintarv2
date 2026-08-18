@@ -66,12 +66,20 @@ export const sendAdminMessage = async (req, res) => {
 export const sendUserMessage = async (req, res) => {
   try {
     // Identitas diambil dari token (req.user) agar tidak bisa dipalsukan lewat body.
-    const email = req.user?.email || req.params.email || req.body.email;
-    const name = req.user?.name || req.body.name;
+    const email = req.user?.email || req.params.email;
+    const name = req.user?.name;
     const message = req.body.message;
 
     if (!name || !email || !message) {
       return res.status(400).json({ success: false, message: "Mohon lengkapi semua field." });
+    }
+
+    if (typeof message !== "string" || message.trim().length === 0 || message.length > 2000) {
+      return res.status(400).json({ success: false, message: "Pesan harus 1-2000 karakter." });
+    }
+
+    if (typeof name !== "string" || name.trim().length === 0 || name.length > 100) {
+      return res.status(400).json({ success: false, message: "Nama harus 1-100 karakter." });
     }
 
     const lastMsg = await Message.findOne({ email }).sort({ createdAt: -1 });
@@ -106,11 +114,15 @@ export const sendUserMessage = async (req, res) => {
 // Untuk update status chat (open/done)
 export const updateChatStatus = async (req, res) => {
   const { email } = req.params;
-  const { status } = req.body; // "open" or "done"
+  const { status } = req.body;
   try {
+    if (!["open", "done"].includes(status)) {
+      return res.status(400).json({ success: false, message: "Invalid status value" });
+    }
     await Message.updateMany({ email }, { $set: { status } });
     res.json({ success: true });
-  } catch {
+  } catch (e) {
+    console.error("UpdateChatStatus error:", e.message);
     res.status(500).json({ success: false });
   }
 };
@@ -157,7 +169,8 @@ export const adminReadChat = async (req, res) => {
   try {
     await Message.updateMany({ email, sender: "user", unreadForAdmin: true }, { $set: { unreadForAdmin: false } });
     res.json({ success: true });
-  } catch {
+  } catch (e) {
+    console.error("AdminReadChat error:", e.message);
     res.status(500).json({ success: false });
   }
 };

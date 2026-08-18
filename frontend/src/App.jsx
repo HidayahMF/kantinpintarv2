@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Routes, Route } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import Home from "./pages/Home/Home";
 import Cart from "./pages/Cart/Cart";
@@ -16,7 +18,6 @@ import DescReview from "./pages/DescReview/DescReview";
 
 const App = () => {
   const [showLogin, setShowLogin] = useState(false);
-  console.log("VITE_API_URL:", import.meta.env.VITE_API_URL);
 
   return (
     <>
@@ -38,6 +39,7 @@ const App = () => {
         </Routes>
       </div>
       <Footer />
+      <ToastContainer position="top-center" autoClose={3000} />
     </>
   );
 };

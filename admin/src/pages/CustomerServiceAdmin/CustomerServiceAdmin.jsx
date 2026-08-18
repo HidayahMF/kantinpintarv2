@@ -13,13 +13,11 @@ const CustomerServiceAdmin = () => {
   const [selectedEmail, setSelectedEmail] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
-
   // Fetch all chat rooms
   const fetchRooms = async () => {
     setLoading(true);
     try {
-      const res = await API.get("/message/users", { headers: authHeaders });
+      const res = await API.get("/message/users");
 
       if (res.data.success) {
         const sortedRooms = [...res.data.data].sort((a, b) => {
@@ -51,7 +49,7 @@ const CustomerServiceAdmin = () => {
   const handleOpenRoom = async (email) => {
     setSelectedEmail(email);
     try {
-      await API.patch(`/message/room/${email}/admin-read`, {}, { headers: authHeaders });
+      await API.patch(`/message/room/${email}/admin-read`, {});
       fetchRooms();
     } catch (error) {
       console.error("Error marking as read:", error);

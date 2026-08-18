@@ -1,13 +1,8 @@
 import React, { useContext, useEffect, useState, useRef } from "react";
 import { StoreContext } from "../../context/StoreContextProvider";
 import { toast } from "react-toastify";
-import axios from "axios";
+import API from "../../api";
 import "./Profile.css";
-
-// Buat instance axios agar clean dan reusable
-const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:4000",
-});
 
 const Profile = () => {
   const { url, token } = useContext(StoreContext);
@@ -18,14 +13,12 @@ const Profile = () => {
   const [uploadImg, setUploadImg] = useState(null);
   const [avatarBuster, setAvatarBuster] = useState(Date.now());
   const fileRef = useRef();
+  const previewUrlRef = useRef(null);
 
-  // ===== FETCH USER INFO =====
   const fetchUser = async () => {
     if (!token) return;
     try {
-      const res = await API.get("/api/user/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await API.get("/user/me");
       if (res.data.success && res.data.user) setUser(res.data.user);
       else setUser(null);
     } catch {
@@ -37,7 +30,6 @@ const Profile = () => {
     fetchUser();
   }, [token]);
 
-  // ===== AVATAR HANDLER =====
   const avatar = previewImg
     ? previewImg
     : user?.avatar
@@ -46,7 +38,6 @@ const Profile = () => {
       encodeURIComponent(user?.name || "User") +
       "&background=FF6834&color=fff&bold=true&size=128";
 
-  // ===== HANDLE SAVE PROFILE =====
   const handleSave = async () => {
     if (!newEmail || !/\S+@\S+\.\S+/.test(newEmail)) {
       toast.error("Please enter a valid email.");
@@ -61,9 +52,7 @@ const Profile = () => {
     if (uploadImg) fd.append("avatar", uploadImg);
 
     try {
-      const res = await API.put("/api/user/update-profile", fd, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await API.put("/user/update-profile", fd);
 
       if (res.data.success) {
         const emailChanged = res.data.user.email !== oldEmail;
@@ -227,7 +216,10 @@ const Profile = () => {
           style={{ display: "none" }}
           onChange={(e) => {
             if (e.target.files[0]) {
-              setPreviewImg(URL.createObjectURL(e.target.files[0]));
+              if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+              const url = URL.createObjectURL(e.target.files[0]);
+              previewUrlRef.current = url;
+              setPreviewImg(url);
               setUploadImg(e.target.files[0]);
             }
           }}

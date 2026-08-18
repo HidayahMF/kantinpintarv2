@@ -9,7 +9,7 @@ import { formatRp } from "../../utils/format";
 const ORDERS_PER_PAGE = 5;
 
 const Orders = () => {
-  const { url, token } = useContext(StoreContext);
+  const { token } = useContext(StoreContext);
   const [orders, setOrders] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -20,9 +20,7 @@ const Orders = () => {
 
     const fetchAllOrders = async () => {
       try {
-        const res = await API.get(`/order/list`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await API.get(`/order/list`);
 
         if (res.data.success) {
           setOrders(res.data.orders || []);
@@ -49,22 +47,14 @@ const Orders = () => {
     try {
       const res = await API.post(
         `/order/status`,
-        { orderId, status: event.target.value },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
+        { orderId, status: event.target.value }
       );
 
       if (res.data.success) {
         toast.success("Status updated");
 
         // Refresh data setelah update
-        const res2 = await API.get(`/order/list`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res2 = await API.get(`/order/list`);
         if (res2.data.success) {
           setOrders(res2.data.orders || []);
         }
@@ -80,9 +70,7 @@ const Orders = () => {
   const handleDelete = async (orderId) => {
     if (!window.confirm("Delete this order?")) return;
     try {
-      await API.delete(`/order/delete/${orderId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await API.delete(`/order/delete/${orderId}`);
       toast.success("Order deleted!");
       setOrders((prev) => prev.filter((order) => order._id !== orderId));
     } catch (err) {

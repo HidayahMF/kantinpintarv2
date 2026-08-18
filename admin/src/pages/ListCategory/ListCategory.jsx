@@ -6,11 +6,9 @@ import API from "../../api"; // ✅ gunakan axios instance
 
 const CATEGORIES_PER_PAGE = 5;
 
-const ListCategory = ({ token: tokenProp, onCategoriesChange }) => {
-  const { url: urlContext, token: tokenContext } = useContext(StoreContext);
-  const url = urlContext || "http://localhost:4000";
-
-  const token = tokenProp || tokenContext;
+const ListCategory = ({ onCategoriesChange }) => {
+  const { token: tokenContext } = useContext(StoreContext);
+  const token = tokenContext;
 
   const [activeTab, setActiveTab] = useState("list");
   const [categories, setCategories] = useState([]);
@@ -35,9 +33,7 @@ const ListCategory = ({ token: tokenProp, onCategoriesChange }) => {
 
   const fetchCategories = async () => {
     try {
-      const res = await API.get("/category/list", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await API.get("/category/list");
       if (res.data.success) {
         setCategories(res.data.data || []);
       } else {
@@ -57,17 +53,9 @@ const ListCategory = ({ token: tokenProp, onCategoriesChange }) => {
     try {
       let res;
       if (editId) {
-        res = await API.put(
-          `/category/${editId}`,
-          { name },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        res = await API.put(`/category/${editId}`, { name });
       } else {
-        res = await API.post(
-          "/category/add",
-          { name },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        res = await API.post("/category/add", { name });
       }
 
       if (res.data.success) {
@@ -97,9 +85,7 @@ const ListCategory = ({ token: tokenProp, onCategoriesChange }) => {
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this category?")) return;
     try {
-      const res = await API.delete(`/category/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await API.delete(`/category/${id}`);
       if (res.data.success) {
         toast.success("Category deleted");
         fetchCategories();

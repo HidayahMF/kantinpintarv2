@@ -10,7 +10,6 @@ import userRouter from "./routes/userRoute.js";
 import cartRouter from "./routes/cartRoute.js";
 import categoryRouter from "./routes/categoryRoute.js";
 import subCategoryRouter from "./routes/subcategoryRoute.js";
-import adminRouter from "./routes/adminRoute.js";
 import messageRouter from "./routes/messageRoute.js";
 
 const app = express();
@@ -37,8 +36,7 @@ if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 const normalizeOrigin = (u) => (u ? u.replace(/\/+$/, "") : u);
 const allowedOrigins = [
   normalizeOrigin(process.env.FRONTEND_URL),
-  "http://localhost:5173",
-  "http://localhost:5174",
+  ...(process.env.NODE_ENV !== "production" ? ["http://localhost:5173", "http://localhost:5174"] : []),
 ].filter(Boolean);
 
 app.use(
@@ -54,7 +52,50 @@ app.use(
 );
 
 app.use("/uploads", express.static(uploadsDir));
-app.use(express.json());
+app.use(express.json({ limit: "1mb" }));
+
+// Basic security headers
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("X-XSS-Protection", "1; mode=block");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  next();
+});
+
+// Simple in-memory rate limiter for auth endpoints
+const authAttempts = new Map();
+const RATE_LIMIT_WINDOW = 15 * 60 * 1000;
+const RATE_LIMIT_MAX = 10;
+
+// Rate limit for all auth-related POST endpoints
+const authRateLimit = (req, res, next) => {
+  if (req.method !== "POST") return next();
+  const ip = req.ip || req.connection.remoteAddress;
+  const now = Date.now();
+  const attempts = authAttempts.get(ip) || [];
+  const recent = attempts.filter((t) => now - t < RATE_LIMIT_WINDOW);
+  if (recent.length >= RATE_LIMIT_MAX) {
+    return res.status(429).json({ success: false, message: "Too many attempts. Please try again later." });
+  }
+  recent.push(now);
+  authAttempts.set(ip, recent);
+  next();
+};
+
+app.use("/api/user/login", authRateLimit);
+app.use("/api/user/register", authRateLimit);
+app.use("/api/user/login-admin", authRateLimit);
+
+// Cleanup rate limiter map every 10 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, attempts] of authAttempts) {
+    const recent = attempts.filter((t) => now - t < RATE_LIMIT_WINDOW);
+    if (recent.length === 0) authAttempts.delete(ip);
+    else authAttempts.set(ip, recent);
+  }
+}, 10 * 60 * 1000);
 
 app.use("/api/food", foodRouter);
 app.use("/api/user", userRouter);
@@ -62,11 +103,27 @@ app.use("/api/cart", cartRouter);
 app.use("/api/order", orderRoutes);
 app.use("/api/category", categoryRouter);
 app.use("/api/subcategory", subCategoryRouter);
-app.use("/api/admin", adminRouter);
 app.use("/api/message", messageRouter);
 
 // health
 app.get("/", (req, res) => res.send("✅ API is running"));
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: `Route not found: ${req.method} ${req.originalUrl}` });
+});
+
+// Centralized error handler — always returns JSON, never HTML
+app.use((err, req, res, _next) => {
+  console.error("Unhandled error:", err);
+  const status = err.status || err.statusCode || 500;
+  res.status(status).json({
+    success: false,
+    message: process.env.NODE_ENV === "production"
+      ? "Internal server error"
+      : err.message || "Internal server error",
+  });
+});
 
 const startServer = async () => {
   try {

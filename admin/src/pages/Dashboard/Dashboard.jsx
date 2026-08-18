@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import API from "../../api";
 import "./Dashboard.css";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, BarChart, Bar,
 } from "recharts";
+import { toast } from "react-toastify";
 
-const BACKEND_URL = "http://localhost:4000";
 const ROWS_PER_PAGE = 5;
 
 const formatIDR = (num) => {
@@ -31,12 +31,8 @@ const Dashboard = () => {
 
   // ambil data users & orders
   useEffect(() => {
-    const token = localStorage.getItem("token");
-
     // GET all users
-    axios.get(`${BACKEND_URL}/api/user/users`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    API.get("/user/users")
       .then(res => {
         if (res.data.success && Array.isArray(res.data.users)) {
           setUsers(res.data.users);
@@ -45,9 +41,7 @@ const Dashboard = () => {
       .catch(console.error);
 
     // GET all orders
-    axios.get(`${BACKEND_URL}/api/order/list`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    API.get("/order/list")
       .then(res => {
         if (res.data.success && Array.isArray(res.data.orders)) {
           setOrders(res.data.orders);
@@ -89,14 +83,11 @@ const Dashboard = () => {
   const handleDeleteUser = async (userId) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
     try {
-      const token = localStorage.getItem("token");
-      await axios.delete(`${BACKEND_URL}/api/user/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await API.delete(`/user/${userId}`);
       setUsers(prev => prev.filter(u => u._id !== userId));
-      alert("User deleted successfully.");
+      toast.success("User deleted successfully.");
     } catch (err) {
-      alert(err?.response?.data?.message || "Failed to delete user");
+      toast.error(err?.response?.data?.message || "Failed to delete user");
     }
   };
 

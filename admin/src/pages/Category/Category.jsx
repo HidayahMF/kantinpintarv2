@@ -1,11 +1,11 @@
 import React, { useContext, useEffect, useState } from "react";
 import "./Category.css";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { assets } from "../../assets/assets";
 import { StoreContext } from "../../context/StoreContextProvider";
+import API from "../../api";
 
-const Category = ({ url, onFoodAdded }) => {
+const Category = ({ onFoodAdded }) => {
   const { token } = useContext(StoreContext);
   const [categories, setCategories] = useState([]);
   const [image, setImage] = useState(null);
@@ -39,7 +39,7 @@ const Category = ({ url, onFoodAdded }) => {
   // Fungsi fetch kategori
   const fetchCategories = async () => {
     try {
-      const res = await axios.get(`${url}/api/category/list`);
+      const res = await API.get("/category/list");
       if (res.data.success) {
         setCategories(res.data.data);
         if (res.data.data.length > 0) {
@@ -77,9 +77,7 @@ const Category = ({ url, onFoodAdded }) => {
     formData.append("image", image);
 
     try {
-      const response = await axios.post(`${url}/api/food/add`, formData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await API.post("/food/add", formData);
       if (response.data.success) {
         toast.success(response.data.message);
 

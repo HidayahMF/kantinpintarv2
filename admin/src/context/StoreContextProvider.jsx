@@ -61,9 +61,7 @@ const StoreContextProvider = ({ children }) => {
     }
     const fetchUserInfo = async () => {
       try {
-         const res = await API.get('/user/me', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+         const res = await API.get('/user/me');
         const data = res.data;
         if (data.success && data.user) {
           setIsAdmin(data.user?.isAdmin === true);
@@ -131,9 +129,7 @@ const StoreContextProvider = ({ children }) => {
     }));
     if (token) {
       try {
-         const res = await API.post("/cart/add",{itemId}, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+         const res = await API.post("/cart/add",{itemId});
       } catch {}
     }
   };
@@ -147,9 +143,7 @@ const StoreContextProvider = ({ children }) => {
     });
     if (token) {
       try {
-         const res = await API.post("/cart/remove",{itemId}, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+         const res = await API.post("/cart/remove",{itemId});
       } catch {}
     }
   };
@@ -161,9 +155,7 @@ const StoreContextProvider = ({ children }) => {
       return;
     }
     try {
-       const res = await API.get("/order/userorders", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+       const res = await API.get("/order/userorders");
       const data = res.data;
       if (data.success && Array.isArray(data.orders)) {
         setOrders(data.orders);
@@ -177,9 +169,7 @@ const StoreContextProvider = ({ children }) => {
 
   const loadCartData = async (token) => {
     try {
-       const res = await API.get("/cart/get", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+       const res = await API.get("/cart/get");
       const data = res.data;
       setCartItems(data.cartData || {});
     } catch {
@@ -206,9 +196,7 @@ const StoreContextProvider = ({ children }) => {
         foodId,
         rating: review.rating,
         comment: review.comment,
-       }, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+       });
       const data = res.data;
       if (data.success && data.food) {
         setFoodList((prev) =>
@@ -282,7 +270,7 @@ const StoreContextProvider = ({ children }) => {
           setUser(null);
           setOrders([]);
           localStorage.removeItem("token");
-          localStorage.setItem("isAdmin", "false");
+          localStorage.removeItem("isAdmin");
           setCartItems({});
           localStorage.removeItem("cartItems");
         },

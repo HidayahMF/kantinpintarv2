@@ -1,26 +1,25 @@
 import SubCategory from "../models/subcategory.model.js";
 
-// Get all subcategories
 export const getSubCategories = async (req, res) => {
   try {
     const subCategories = await SubCategory.find().populate("category");
     res.json(subCategories);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("GetSubCategories error:", error.message);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
-// Get subcategories by category ID
 export const getSubCategoriesByCategory = async (req, res) => {
   try {
     const subCategories = await SubCategory.find({ category: req.params.categoryId });
     res.json(subCategories);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("GetSubCategoriesByCategory error:", error.message);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
-// Create a new subcategory
 export const createSubCategory = async (req, res) => {
   try {
     const { name, category } = req.body;
@@ -33,11 +32,11 @@ export const createSubCategory = async (req, res) => {
     await newSubCategory.save();
     res.status(201).json(newSubCategory);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("CreateSubCategory error:", error.message);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
-// Update a subcategory
 export const updateSubCategory = async (req, res) => {
   try {
     const { name, category } = req.body;
@@ -53,11 +52,11 @@ export const updateSubCategory = async (req, res) => {
 
     res.json(updated);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("UpdateSubCategory error:", error.message);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
-// Delete a subcategory
 export const deleteSubCategory = async (req, res) => {
   try {
     const deleted = await SubCategory.findByIdAndDelete(req.params.id);
@@ -66,6 +65,7 @@ export const deleteSubCategory = async (req, res) => {
     }
     res.json({ message: "SubCategory deleted successfully" });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("DeleteSubCategory error:", error.message);
+    res.status(500).json({ message: "Internal server error" });
   }
 };

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import "./List.css";
 import { toast } from "react-toastify";
 import API from "../../api"; // pastikan path sesuai struktur folder kamu
@@ -8,7 +8,7 @@ import { formatRp } from "../../utils/format";
 const FOODS_PER_PAGE = 5;
 
 const List = () => {
-  const { token, url } = useContext(StoreContext);
+  const { url } = useContext(StoreContext);
   const [list, setList] = useState([]);
   const [categories, setCategories] = useState([]);
   const [editItem, setEditItem] = useState(null);
@@ -20,6 +20,7 @@ const List = () => {
   });
   const [editImage, setEditImage] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
+  const previewUrlRef = useRef(null);
   const [currentPage, setCurrentPage] = useState(1);
 
   const totalPages = Math.ceil(list.length / FOODS_PER_PAGE);
@@ -42,9 +43,7 @@ const List = () => {
   // 🔹 Ambil daftar makanan
   const fetchList = async ({ keepPage = false } = {}) => {
     try {
-      const res = await API.get("/food/list", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await API.get("/food/list");
       if (Array.isArray(res.data)) setList(res.data);
       else if (res.data?.success && Array.isArray(res.data.data))
         setList(res.data.data);
@@ -72,9 +71,7 @@ const List = () => {
   const removeFood = async (foodId) => {
     if (!window.confirm("Are you sure?")) return;
     try {
-      const res = await API.delete(`/food/remove/${foodId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await API.delete(`/food/remove/${foodId}`);
       if (res.data.success) {
         toast.success("Food removed");
         fetchList({ keepPage: true });
@@ -120,9 +117,7 @@ const List = () => {
       fd.append("stock", formData.stock);
       if (editImage) fd.append("image", editImage);
 
-      const res = await API.put(`/food/update/${editItem}`, fd, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await API.put(`/food/update/${editItem}`, fd);
 
       if (res.data.success) {
         toast.success("Updated successfully");
@@ -292,7 +287,10 @@ const List = () => {
                 style={{ display: "none" }}
                 onChange={(e) => {
                   setEditImage(e.target.files[0]);
-                  setPreviewImage(URL.createObjectURL(e.target.files[0]));
+                  if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+                  const url = URL.createObjectURL(e.target.files[0]);
+                  previewUrlRef.current = url;
+                  setPreviewImage(url);
                 }}
               />
             </label>

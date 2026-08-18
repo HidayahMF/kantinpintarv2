@@ -11,11 +11,9 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import CustomerServiceAdmin from "./pages/CustomerServiceAdmin/CustomerServiceAdmin";
+import ProtectedRouteAdmin from "./components/ProtectedRouteAdmin";
 
 const App = () => {
-  const url = "http://localhost:4000";
- console.log("VITE_API_URL:", import.meta.env.VITE_API_URL);
-
   return (
     <div className="app">
       <ToastContainer />
@@ -25,18 +23,15 @@ const App = () => {
         <Sidebar />
         <main style={{ flex: 1, padding: "20px" }}>
           <Routes>
-            
-            <Route path="/" element={<Navigate to="/add" replace />} />
-            <Route path="/dashboard" element={<Dashboard url={url} />} />
-            <Route path="/add" element={<Add url={url} />} />
-            <Route path="/list" element={<List url={url} />} />
-            <Route path="/orders" element={<Orders url={url} />} />
-            <Route path="/category" element={<Category url={url} />} />
-            <Route path="/list-category" element={<ListCategory url={url} />} />
-            <Route path="/customer-service" element={<CustomerServiceAdmin url={url} />} />
-            
-            
-            <Route path="*" element={<Navigate to="/add" replace />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<ProtectedRouteAdmin><Dashboard /></ProtectedRouteAdmin>} />
+            <Route path="/add" element={<ProtectedRouteAdmin><Add /></ProtectedRouteAdmin>} />
+            <Route path="/list" element={<ProtectedRouteAdmin><List /></ProtectedRouteAdmin>} />
+            <Route path="/orders" element={<ProtectedRouteAdmin><Orders /></ProtectedRouteAdmin>} />
+            <Route path="/category" element={<ProtectedRouteAdmin><Category /></ProtectedRouteAdmin>} />
+            <Route path="/list-category" element={<ProtectedRouteAdmin><ListCategory /></ProtectedRouteAdmin>} />
+            <Route path="/customer-service" element={<ProtectedRouteAdmin><CustomerServiceAdmin /></ProtectedRouteAdmin>} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </main>
       </div>

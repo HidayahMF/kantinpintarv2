@@ -7,6 +7,7 @@ const orderSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
     },
     items: [
       {
@@ -44,8 +45,9 @@ const orderSchema = new mongoose.Schema(
       enum: ["pending", "completed", "failed"],
       default: "pending",
     },
-    midtransOrderId: { type: String, default: null },
+    midtransOrderId: { type: String, default: null, index: true },
     paymentMethod: { type: String, default: null },
+    stockDeducted: { type: Boolean, default: false },
     date: { type: Date, default: Date.now },
   },
   { timestamps: true }

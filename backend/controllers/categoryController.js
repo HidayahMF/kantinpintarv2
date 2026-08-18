@@ -1,4 +1,5 @@
 import Category from "../models/categoryModel.js";
+import SubCategory from "../models/subcategory.model.js";
 
 // GET all categories (public - for sidebar dropdown)
 export const getCategories = async (req, res) => {
@@ -87,6 +88,8 @@ export const deleteCategory = async (req, res) => {
     if (!category) {
       return res.status(404).json({ success: false, message: "Category not found" });
     }
+
+    await SubCategory.deleteMany({ category: req.params.id });
 
     res.json({ success: true, message: "Category deleted" });
   } catch (err) {

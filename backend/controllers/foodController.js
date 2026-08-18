@@ -1,4 +1,5 @@
 import Food from "../models/foodModel.js";
+import Category from "../models/categoryModel.js";
 import userModel from "../models/userModel.js";
 import fs from "fs";
 import path from "path";
@@ -23,6 +24,10 @@ export const addFood = async (req, res) => {
     if (!name || !description || !price || !category)
       return res.status(400).json({ success: false, message: "Missing required fields" });
 
+    const categoryExists = await Category.findOne({ name: category });
+    if (!categoryExists)
+      return res.status(400).json({ success: false, message: "Category does not exist" });
+
     if (stock == null || isNaN(Number(stock)) || Number(stock) < 0)
       return res.status(400).json({ success: false, message: "Stock is required and must be >= 0" });
 
@@ -46,7 +51,6 @@ export const addFood = async (req, res) => {
 // READ
 export const listFood = async (req, res) => {
   try {
-    console.log("GET /api/food/list called"); // debug log
     const categoryFilter = req.query.category;
     const filter = {};
     if (categoryFilter && categoryFilter !== "All") filter.category = categoryFilter;
@@ -118,8 +122,17 @@ export const addReview = async (req, res) => {
     const user = await userModel.findById(userId);
     const userName = user?.name || "Anonymous";
 
-    if (!foodId || !rating || !comment)
-      return res.status(400).json({ success: false, message: "Missing required fields" });
+    if (!foodId)
+      return res.status(400).json({ success: false, message: "foodId is required" });
+    if (!comment)
+      return res.status(400).json({ success: false, message: "Comment is required" });
+
+    if (rating === undefined || rating === null)
+      return res.status(400).json({ success: false, message: "Rating is required" });
+
+    const parsedRating = Number(rating);
+    if (!Number.isInteger(parsedRating) || parsedRating < 1 || parsedRating > 5)
+      return res.status(400).json({ success: false, message: "Rating must be an integer between 1 and 5" });
 
     const food = await Food.findById(foodId);
     if (!food) return res.status(404).json({ success: false, message: "Food not found" });
@@ -127,7 +140,7 @@ export const addReview = async (req, res) => {
     const alreadyReviewed = food.reviews?.some((r) => r.userId?.toString() === userId);
     if (alreadyReviewed) return res.status(400).json({ success: false, message: "Already reviewed" });
 
-    const newReview = { userId, user: userName, rating: Number(rating), comment, date: new Date() };
+    const newReview = { userId, user: userName, rating: parsedRating, comment, date: new Date() };
     if (!food.reviews) food.reviews = [];
     food.reviews.push(newReview);
 

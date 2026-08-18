@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import "./Add.css";
 import { assets } from "../../assets/assets";
 import { toast } from "react-toastify";
@@ -16,10 +16,11 @@ const menu_list = [
   { menu_name: "Noodles" },
 ];
 
-const Add = ({ url, onAddSuccess }) => {
+const Add = ({ onAddSuccess }) => {
   const { token } = useContext(StoreContext);
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
+  const previewUrlRef = useRef(null);
   const [data, setData] = useState({
     name: "",
     description: "",
@@ -36,12 +37,19 @@ const Add = ({ url, onAddSuccess }) => {
 
   useEffect(() => {
     if (image) {
-      setPreview(URL.createObjectURL(image));
-      return () => URL.revokeObjectURL(preview);
+      if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+      const url = URL.createObjectURL(image);
+      previewUrlRef.current = url;
+      setPreview(url);
+      return () => {
+        if (previewUrlRef.current) {
+          URL.revokeObjectURL(previewUrlRef.current);
+          previewUrlRef.current = null;
+        }
+      };
     } else {
       setPreview(null);
     }
-    
   }, [image]);
 
   const onSubmitHandler = async (event) => {
@@ -62,9 +70,7 @@ const Add = ({ url, onAddSuccess }) => {
     formData.append("image", image);
 
     try {
-       const res = await API.post("/food/add", formData, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+       const res = await API.post("/food/add", formData);
 
       const result = res.data;
 

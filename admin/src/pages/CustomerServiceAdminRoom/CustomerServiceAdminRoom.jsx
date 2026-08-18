@@ -13,36 +13,33 @@ const CustomerServiceAdminRoom = ({ email, onClose, onStatusChange }) => {
 
   const chatEndRef = useRef(null);
   const [inputFocus, setInputFocus] = useState(false);
+  const isMountedRef = useRef(true);
 
-  const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => { isMountedRef.current = false; };
+  }, []);
 
-  // --- Ambil semua pesan di room tertentu
   const fetchMessages = async () => {
     setLoading(true);
     try {
-      const res = await API.get(`/message/room/${email}`, {
-        headers: authHeaders,
-      });
-      if (res.data.success) setMessages(res.data.data);
+      const res = await API.get(`/message/room/${email}`);
+      if (isMountedRef.current && res.data.success) setMessages(res.data.data);
     } catch (error) {
       console.error("Error fetching messages:", error);
     }
-    setLoading(false);
+    if (isMountedRef.current) setLoading(false);
   };
 
-  // --- Ambil status room (open/done)
   const fetchStatus = async () => {
     try {
-      const res = await API.get(`/message/room/${email}/status`, {
-        headers: authHeaders,
-      });
-      setStatus(res.data.status);
+      const res = await API.get(`/message/room/${email}/status`);
+      if (isMountedRef.current) setStatus(res.data.status);
     } catch (error) {
       console.error("Error fetching status:", error);
     }
   };
 
-  // --- Polling setiap 10 detik (berhenti saat input sedang fokus)
   useEffect(() => {
     let timer;
     const poll = async () => {
@@ -50,31 +47,24 @@ const CustomerServiceAdminRoom = ({ email, onClose, onStatusChange }) => {
         await fetchMessages();
         await fetchStatus();
       }
-      timer = setTimeout(poll, 10000); // 10 detik
+      timer = setTimeout(poll, 10000);
     };
     poll();
     return () => clearTimeout(timer);
-    // eslint-disable-next-line
   }, [email, inputFocus]);
 
-  // --- Auto scroll ke bawah setiap kali pesan baru muncul
   useEffect(() => {
     if (!inputFocus && chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, inputFocus]);
 
-  // --- Kirim pesan admin ke user
   const handleSend = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
     setSending(true);
     try {
-      await API.post(
-        `/message/room/${email}/admin`,
-        { message: input },
-        { headers: authHeaders }
-      );
+      await API.post(`/message/room/${email}/admin`, { message: input });
       setInput("");
       fetchMessages();
     } catch (error) {
@@ -83,14 +73,9 @@ const CustomerServiceAdminRoom = ({ email, onClose, onStatusChange }) => {
     setSending(false);
   };
 
-  // --- Tandai chat selesai
   const handleDone = async () => {
     try {
-      await API.patch(
-        `/message/room/${email}/status`,
-        { status: "done" },
-        { headers: authHeaders }
-      );
+      await API.patch(`/message/room/${email}/status`, { status: "done" });
       setStatus("done");
       if (onStatusChange) onStatusChange();
     } catch (error) {

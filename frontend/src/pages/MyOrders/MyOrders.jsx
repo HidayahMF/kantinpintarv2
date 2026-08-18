@@ -23,9 +23,7 @@ const MyOrders = () => {
     }
 
     try {
-      const res = await API.get("/order/userorders", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await API.get("/order/userorders");
       setOrders(res.data.success ? res.data.orders : []);
     } catch (err) {
       setOrders([]);

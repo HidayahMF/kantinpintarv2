@@ -6,13 +6,27 @@ import multer from "multer";
 import path from "path";
 
 // Multer setup for avatar upload
+const ALLOWED_AVATAR_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+const MAX_AVATAR_SIZE = 2 * 1024 * 1024; // 2MB
+
 const storage = multer.diskStorage({
   destination: "uploads",
   filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname.replace(/\s+/g, '_'));
+    const safeName = Date.now() + "-" + file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
+    cb(null, safeName);
   },
 });
-export const upload = multer({ storage });
+export const upload = multer({
+  storage,
+  limits: { fileSize: MAX_AVATAR_SIZE },
+  fileFilter: (req, file, cb) => {
+    if (ALLOWED_AVATAR_TYPES.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only image files (JPEG, PNG, WebP) are allowed for avatar"));
+    }
+  },
+});
 
 // Helper: Create JWT token
 const createToken = (id, isAdmin) => {

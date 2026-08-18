@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState, useContext } from "react";
 import { StoreContext } from "../../context/StoreContextProvider";
-import API from "../../api"; // ✅ gunakan API bawaan dari src/api.js
+import API from "../../api";
 import "./CustomerServiceRoom.css";
+import { toast } from "react-toastify";
 
 const CustomerServiceRoom = () => {
   const { user, token } = useContext(StoreContext);
@@ -15,10 +16,13 @@ const CustomerServiceRoom = () => {
   const [inputFocus, setInputFocus] = useState(false);
 
   const email = user?.email;
+  const isMountedRef = useRef(true);
 
-  const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => { isMountedRef.current = false; };
+  }, []);
 
-  // Fetch messages dari server
   const fetchMessages = async () => {
     if (!email) {
       setLoading(false);
@@ -26,29 +30,22 @@ const CustomerServiceRoom = () => {
     }
     setLoading(true);
     try {
-      const res = await API.get(`/message/room/${email}`, {
-        headers: authHeaders,
-      });
-      if (res.data.success) setMessages(res.data.data);
+      const res = await API.get(`/message/room/${email}`);
+      if (isMountedRef.current && res.data.success) setMessages(res.data.data);
     } catch (err) {
       console.error("Error fetching messages:", err);
     }
-    setLoading(false);
+    if (isMountedRef.current) setLoading(false);
   };
 
-  // Fetch status chat
   const fetchStatus = async () => {
     if (!email) return;
     try {
-      const res = await API.get(`/message/room/${email}/status`, {
-        headers: authHeaders,
-      });
-      setStatus(res.data.status);
+      const res = await API.get(`/message/room/${email}/status`);
+      if (isMountedRef.current) setStatus(res.data.status);
 
       if (res.data.status === "done") {
-        const resMsgs = await API.get(`/message/room/${email}`, {
-          headers: authHeaders,
-        });
+        const resMsgs = await API.get(`/message/room/${email}`);
         const lastUserMsg = (resMsgs.data.data || [])
           .filter((msg) => msg.sender === "user")
           .pop();
@@ -66,7 +63,6 @@ const CustomerServiceRoom = () => {
     }
   };
 
-  // Polling setiap 10 detik
   useEffect(() => {
     let timer;
     const poll = async () => {
@@ -74,38 +70,32 @@ const CustomerServiceRoom = () => {
         await fetchMessages();
         await fetchStatus();
       }
-      timer = setTimeout(poll, 10000); // 10 detik
+      timer = setTimeout(poll, 10000);
     };
     poll();
     return () => clearTimeout(timer);
   }, [email, inputFocus]);
 
-  // Auto-scroll chat
   useEffect(() => {
     if (!inputFocus && chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, inputFocus]);
 
-  // Kirim pesan ke admin
   const handleSend = async (e) => {
     e.preventDefault();
     if (!input.trim() || !email) return;
 
     try {
-      await API.post(
-        `/message/room/${email}/user`,
-        {
-          name: user.name,
-          message: input,
-        },
-        { headers: authHeaders }
-      );
+      await API.post(`/message/room/${email}/user`, {
+        name: user.name,
+        message: input,
+      });
       setInput("");
       fetchMessages();
       fetchStatus();
     } catch (err) {
-      alert(
+      toast.error(
         err?.response?.data?.message ||
           "Gagal mengirim pesan. Silakan coba lagi."
       );
