@@ -1,138 +1,153 @@
-# kantinpintarv2 — Development Pipeline
+# 🍜 KantinPintar v2 — Engineering Blueprint
 
-> Code-grounded architecture and delivery guide for the current repository snapshot. Reviewed from `main` at `1188cfd98fc8` on 2026-09-17.
+> **Commerce flow:** Customer + Admin React apps → Express API → MongoDB → Midtrans payment lifecycle.
 
-KantinPintar combines a customer React app, an admin React app, an Express API, MongoDB, and Midtrans Snap payments.
+**Reviewed snapshot:** `main` @ [`1188cfd98fc8`](https://github.com/HidayahMF/kantinpintarv2/commit/1188cfd98fc8bd6ed4c57b19cd1f674e7321358b) — 2026-09-17
 
-## 1. System architecture
+## ⚡ System snapshot
+
+| Layer | Implementation |
+| --- | --- |
+| Customer UI | React |
+| Admin UI | React |
+| API | Express |
+| Database | MongoDB / Mongoose |
+| Payments | Midtrans Snap |
+| CI | No `.github/workflows/` found in reviewed snapshot |
+
+## 🏗️ System architecture
 
 ```mermaid
 flowchart LR
-    C[Customer React] --> A[Express API]
-    ADM[Admin React] --> A
-    A --> DB[(MongoDB)]
-    A --> M[Midtrans Snap]
-    M --> W[Payment Notification]
-    W --> A
+    C[Customer React] --> API[Express API]
+    ADM[Admin React] --> API
+
+    API --> DB[(MongoDB)]
+    API --> MID[Midtrans Snap]
+
+    MID --> WEBHOOK[Signed payment notification]
+    WEBHOOK --> API
+
+    API --> C
+    API --> ADM
 ```
 
-## 2. Order-to-payment pipeline
+## 🛒 Order → payment → stock journey
 
 ```mermaid
 flowchart TD
-    CART[Customer Cart] --> API[Create Order API]
-    API --> LOAD[Load food price + stock]
-    LOAD --> VALID[Validate order]
-    VALID --> PAY[Create Midtrans transaction]
-    PAY --> PENDING[(Save Pending Order)]
-    PENDING --> SNAP[Return Snap token]
-    SNAP --> CUSTOMER[Customer Pays]
-    CUSTOMER --> MID[Midtrans]
-    MID --> WEBHOOK[Signed Notification]
-    WEBHOOK --> STATUS[Update Order Status]
-    STATUS --> STOCK[Deduct Stock]
-    STOCK --> DONE[Order Result]
+    CART[Customer cart] --> CREATE[Create order]
+    CREATE --> SERVER[Load price + stock server-side]
+    SERVER --> VALID{Valid + enough stock?}
+    VALID -->|No| REJECT[Reject order]
+    VALID -->|Yes| MID[Create Midtrans transaction]
+    MID --> SAVE[(Save pending order)]
+    SAVE --> TOKEN[Return Snap token]
+    TOKEN --> PAY[Customer pays]
+    PAY --> CALLBACK[Midtrans notification]
+    CALLBACK --> VERIFY[Verify notification]
+    VERIFY --> STATE[Update payment/order state]
+    STATE --> STOCK[Deduct stock]
+    STOCK --> COMPLETE[Order completed]
 ```
 
-## 3. Payment callback flow
+## 🔔 Callback sequence
 
 ```mermaid
 sequenceDiagram
     participant M as Midtrans
     participant A as Express API
-    participant D as MongoDB
+    participant O as Orders
+    participant F as Food Stock
 
     M->>A: Payment notification
     A->>A: Validate notification/signature
-    A->>D: Load order
-    D-->>A: Pending order
-    A->>D: Update payment/order state
-    A->>D: Deduct item stock
+    A->>O: Load order
+    O-->>A: Current state
+    A->>O: Update payment/order state
+    A->>F: Deduct each item stock
     A-->>M: Acknowledge
 ```
 
-Payment status and stock are separate writes spanning external and database systems. Duplicate and concurrent callbacks must be treated as a release-critical scenario.
+> **Release-critical:** external payment events and database writes cross system boundaries. Duplicate and near-simultaneous callbacks must be treated as first-class test cases.
 
-## 4. Runtime ownership
+## 🗺️ Code ownership map
 
-| Layer | Responsibility | Key source |
-| --- | --- | --- |
-| Customer frontend | Menu, cart, customer orders | `frontend/` |
-| Admin frontend | Administrative order/menu workflows | `admin/` |
-| Express | API entrypoint and domain routing | `backend/server.js` |
-| Order controller | Pricing, payment, status, stock | `backend/controllers/orderController.js` |
-| Admin auth | Admin authorization | `backend/middleware/authAdminMiddleware.js` |
-| MongoDB | Users, food, carts, orders | Mongoose models |
-| Midtrans | Payment transaction + notification | External payment service |
+| Source | Owns |
+| --- | --- |
+| [`backend/server.js`](https://github.com/HidayahMF/kantinpintarv2/blob/1188cfd98fc8bd6ed4c57b19cd1f674e7321358b/backend/server.js) | API entry/runtime |
+| [`backend/controllers/orderController.js`](https://github.com/HidayahMF/kantinpintarv2/blob/1188cfd98fc8bd6ed4c57b19cd1f674e7321358b/backend/controllers/orderController.js) | Order pricing, payment, state, stock |
+| [`backend/middleware/authAdminMiddleware.js`](https://github.com/HidayahMF/kantinpintarv2/blob/1188cfd98fc8bd6ed4c57b19cd1f674e7321358b/backend/middleware/authAdminMiddleware.js) | Admin authorization |
+| [`frontend/src/context/StoreContextProvider.jsx`](https://github.com/HidayahMF/kantinpintarv2/blob/1188cfd98fc8bd6ed4c57b19cd1f674e7321358b/frontend/src/context/StoreContextProvider.jsx) | Customer-side shared store/request state |
 
-## 5. Development pipeline
+## 🚀 Developer → release pipeline
 
 ```mermaid
 flowchart LR
-    SRC[Pull source] --> ENV[Configure env]
-    ENV --> DB[Connect MongoDB]
-    ENV --> API[Install/run backend]
-    ENV --> C[Install/run customer UI]
-    ENV --> AD[Install/run admin UI]
-    API --> TEST[API/payment sandbox checks]
-    C --> BUILD[Build/lint]
-    AD --> BUILD
-    TEST --> REVIEW[Review]
-    BUILD --> REVIEW
+    A[Change request] --> B[Trace domain owner]
+    B --> C[Implement focused change]
+    C --> D[Customer/Admin lint + build]
+    D --> E[API smoke test]
+    E --> F[Midtrans sandbox scenarios]
+    F --> G[Authorization checks]
+    G --> H[Concurrency/idempotency checks]
+    H --> I[PR review]
+    I --> J[Deploy]
+    J --> K[Sandbox post-deploy smoke]
 ```
 
-| Directory | Command | Purpose |
+### Declared commands
+
+| App | Commands |
+| --- | --- |
+| Backend | `npm run dev`, `npm run start` |
+| Customer UI | `npm run dev`, `npm run lint`, `npm run build` |
+| Admin UI | `npm run dev`, `npm run lint`, `npm run build` |
+
+## 🛡️ Quality gates
+
+| Gate | Must prove |
+| --- | --- |
+| Price integrity | Browser cannot override authoritative product pricing |
+| Stock integrity | Insufficient stock is rejected safely |
+| Notification trust | Invalid/tampered callbacks do not update orders |
+| Idempotency | Duplicate callbacks do not deduct stock twice |
+| Concurrency | Near-simultaneous callbacks do not corrupt inventory |
+| Ownership | Customer reads only their own orders |
+| Admin separation | Admin-only behavior stays protected |
+| Payment states | Success, failure, and expiry paths behave predictably |
+
+## ⚠️ Risk radar
+
+| Priority | Finding | Impact |
 | --- | --- | --- |
-| `backend` | `npm run dev` | Run API with nodemon |
-| `backend` | `npm run start` | Start API |
-| `frontend` | `npm run dev` | Customer UI |
-| `frontend` | `npm run build` | Customer production build |
-| `frontend` | `npm run lint` | Customer lint |
-| `admin` | `npm run dev` | Admin UI |
-| `admin` | `npm run build` | Admin production build |
-| `admin` | `npm run lint` | Admin lint |
+| 🔴 High | Stock deduction uses per-item writes | Partial failure/concurrency can create inconsistent inventory |
+| 🔴 High | Payment + DB updates span separate systems | Exactly-once behavior is not automatic |
+| 🟠 Medium | Order flag alone does not prove idempotency | Duplicate notifications still require explicit verification |
+| 🟡 Low | No conventional automated test suite found | Payment regression protection depends on deliberate sandbox testing |
 
-## 6. Verification gates
-
-Use Midtrans sandbox and synthetic data to validate:
-
-- Product price is loaded server-side rather than trusted from the browser.
-- Insufficient stock.
-- Invalid or tampered payment notification.
-- Duplicate payment notification.
-- Two callbacks arriving near-simultaneously.
-- Order state transition after successful payment.
-- Stock deducted once only.
-- Customer can read only their own orders.
-- Admin/customer authorization separation.
-- Failed payment and expired transaction states.
-
-## 7. Release pipeline
+## 🌐 Release readiness flow
 
 ```mermaid
-flowchart LR
-    PR[Reviewed PR] --> BUILD[Build Customer + Admin]
-    BUILD --> API[Deploy Express API]
-    API --> DB[Verify MongoDB]
-    DB --> PAY[Verify Midtrans config]
-    PAY --> CALLBACK[Verify callback URL]
-    CALLBACK --> SMOKE[Sandbox payment smoke test]
+flowchart TD
+    BUILD[Build customer + admin] --> API[API reachable]
+    API --> DB{MongoDB reachable?}
+    DB -->|No| STOP[Stop release]
+    DB -->|Yes| PAY[Midtrans config valid]
+    PAY --> CALLBACK[Callback endpoint reachable]
+    CALLBACK --> TEST[Sandbox payment]
+    TEST --> DUP[Replay notification]
+    DUP --> STOCK{Stock deducted once?}
+    STOCK -->|No| STOP
+    STOCK -->|Yes| DONE[Release verified]
 ```
 
-No `.github/workflows/` automation was found in the reviewed snapshot.
+## 📌 Engineering rule
 
-## 8. Known gaps
+Payment success is not enough by itself. A release should prove the **entire order state + inventory effect** behaves correctly under retries and duplicate delivery.
 
-1. Stock deduction uses per-item writes plus an order flag; this alone does not establish concurrency-safe exactly-once processing.
-2. Payment and database updates span different systems and require idempotency-focused testing.
-3. No conventional automated test suite was identified in the reviewed tree.
-4. CI is not currently represented by GitHub Actions in this snapshot.
+---
 
-## 9. Source map
+### Keeping this blueprint accurate
 
-- [`backend/server.js`](https://github.com/HidayahMF/kantinpintarv2/blob/1188cfd98fc8bd6ed4c57b19cd1f674e7321358b/backend/server.js)
-- [`backend/controllers/orderController.js`](https://github.com/HidayahMF/kantinpintarv2/blob/1188cfd98fc8bd6ed4c57b19cd1f674e7321358b/backend/controllers/orderController.js)
-- [`backend/middleware/authAdminMiddleware.js`](https://github.com/HidayahMF/kantinpintarv2/blob/1188cfd98fc8bd6ed4c57b19cd1f674e7321358b/backend/middleware/authAdminMiddleware.js)
-- [`frontend/src/context/StoreContextProvider.jsx`](https://github.com/HidayahMF/kantinpintarv2/blob/1188cfd98fc8bd6ed4c57b19cd1f674e7321358b/frontend/src/context/StoreContextProvider.jsx)
-
-Keep this guide synchronized with order state transitions, stock rules, Midtrans integration, and authorization changes.
+Update the diagrams whenever order state transitions, stock deduction rules, payment callbacks, or authorization boundaries change.
