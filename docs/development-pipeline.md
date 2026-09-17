@@ -1,100 +1,138 @@
 # kantinpintarv2 — Development Pipeline
 
-Food ordering application with customer and admin React apps, an Express API, MongoDB models, and Midtrans payment integration.
+> Code-grounded architecture and delivery guide for the current repository snapshot. Reviewed from `main` at `1188cfd98fc8` on 2026-09-17.
 
-> Source review: **2026-09-17**, branch `main`, commit [`1188cfd98fc8`](https://github.com/HidayahMF/kantinpintarv2/commit/1188cfd98fc8bd6ed4c57b19cd1f674e7321358b). This is a code-grounded implementation overview and development guide, not a reconstructed historical timeline or a claim that runtime tests passed.
+KantinPintar combines a customer React app, an admin React app, an Express API, MongoDB, and Midtrans Snap payments.
 
-## At a glance
+## 1. System architecture
 
-| Area | Finding |
-| --- | --- |
-| Review scope | Repository tree, dependency manifests, and selected entry points/domain implementations linked below |
-| Automated CI | No files under `.github/workflows/` in this source snapshot |
-| Validation performed | Static source and documentation review; application builds, tests, databases, and external services were not executed |
+```mermaid
+flowchart LR
+    C[Customer React] --> A[Express API]
+    ADM[Admin React] --> A
+    A --> DB[(MongoDB)]
+    A --> M[Midtrans Snap]
+    M --> W[Payment Notification]
+    W --> A
+```
 
-## Implemented flow
-
-1. The customer context loads menu/cart state and attaches authenticated requests; admin access is verified against the database.
-
-2. Order creation loads food prices and stock from the database, calculates the payable amount, requests a Midtrans Snap transaction, and stores a pending order.
-
-3. Payment status checks and signed notifications update order status and invoke stock deduction; the customer can retrieve their own orders.
-
-### Runtime map
+## 2. Order-to-payment pipeline
 
 ```mermaid
 flowchart TD
- C["Customer UI"] --> A["Express API"]
- U["Admin UI"] --> A
- A --> D[("MongoDB")]
- A --> P["Midtrans Snap"]
- P --> W["Notification handler"]
- W --> D
+    CART[Customer Cart] --> API[Create Order API]
+    API --> LOAD[Load food price + stock]
+    LOAD --> VALID[Validate order]
+    VALID --> PAY[Create Midtrans transaction]
+    PAY --> PENDING[(Save Pending Order)]
+    PENDING --> SNAP[Return Snap token]
+    SNAP --> CUSTOMER[Customer Pays]
+    CUSTOMER --> MID[Midtrans]
+    MID --> WEBHOOK[Signed Notification]
+    WEBHOOK --> STATUS[Update Order Status]
+    STATUS --> STOCK[Deduct Stock]
+    STOCK --> DONE[Order Result]
 ```
 
-## Source map
+## 3. Payment callback flow
 
-Principal source files used for this overview, pinned to the reviewed commit:
+```mermaid
+sequenceDiagram
+    participant M as Midtrans
+    participant A as Express API
+    participant D as MongoDB
 
-- [backend/server.js](https://github.com/HidayahMF/kantinpintarv2/blob/1188cfd98fc8bd6ed4c57b19cd1f674e7321358b/backend/server.js)
-- [backend/controllers/orderController.js](https://github.com/HidayahMF/kantinpintarv2/blob/1188cfd98fc8bd6ed4c57b19cd1f674e7321358b/backend/controllers/orderController.js)
-- [backend/middleware/authAdminMiddleware.js](https://github.com/HidayahMF/kantinpintarv2/blob/1188cfd98fc8bd6ed4c57b19cd1f674e7321358b/backend/middleware/authAdminMiddleware.js)
-- [frontend/src/context/StoreContextProvider.jsx](https://github.com/HidayahMF/kantinpintarv2/blob/1188cfd98fc8bd6ed4c57b19cd1f674e7321358b/frontend/src/context/StoreContextProvider.jsx)
+    M->>A: Payment notification
+    A->>A: Validate notification/signature
+    A->>D: Load order
+    D-->>A: Pending order
+    A->>D: Update payment/order state
+    A->>D: Deduct item stock
+    A-->>M: Acknowledge
+```
 
-## Technology and commands
+Payment status and stock are separate writes spanning external and database systems. Duplicate and concurrent callbacks must be treated as a release-critical scenario.
 
-Version ranges below are declarations in source manifests, not independently verified installed versions.
+## 4. Runtime ownership
 
-| Manifest | Relevant declarations |
-| --- | --- |
-| [admin/package.json](https://github.com/HidayahMF/kantinpintarv2/blob/1188cfd98fc8bd6ed4c57b19cd1f674e7321358b/admin/package.json) | `react ^19.1.0`, `vite ^6.3.5` |
-| [backend/package.json](https://github.com/HidayahMF/kantinpintarv2/blob/1188cfd98fc8bd6ed4c57b19cd1f674e7321358b/backend/package.json) | `express ^5.1.0`, `midtrans-client ^1.4.3`, `mongoose ^8.14.1` |
-| [frontend/package.json](https://github.com/HidayahMF/kantinpintarv2/blob/1188cfd98fc8bd6ed4c57b19cd1f674e7321358b/frontend/package.json) | `react ^19.0.0`, `vite ^6.3.1` |
-| [package.json](https://github.com/HidayahMF/kantinpintarv2/blob/1188cfd98fc8bd6ed4c57b19cd1f674e7321358b/package.json) | See manifest |
-
-Run each command from the indicated directory after installing the corresponding dependencies and configuring an isolated development environment. Commands are listed as declared; this review does not certify they succeed.
-
-| Directory | Command | Implementation |
+| Layer | Responsibility | Key source |
 | --- | --- | --- |
-| `admin` | `npm run dev` | Declared: `vite` |
-| `admin` | `npm run build` | Declared: `vite build` |
-| `admin` | `npm run lint` | Declared: `eslint .` |
-| `backend` | `npm run start` | Declared: `node server.js` |
-| `backend` | `npm run dev` | Declared: `nodemon server.js` |
-| `frontend` | `npm run dev` | Declared: `vite` |
-| `frontend` | `npm run build` | Declared: `vite build` |
-| `frontend` | `npm run lint` | Declared: `eslint .` |
+| Customer frontend | Menu, cart, customer orders | `frontend/` |
+| Admin frontend | Administrative order/menu workflows | `admin/` |
+| Express | API entrypoint and domain routing | `backend/server.js` |
+| Order controller | Pricing, payment, status, stock | `backend/controllers/orderController.js` |
+| Admin auth | Admin authorization | `backend/middleware/authAdminMiddleware.js` |
+| MongoDB | Users, food, carts, orders | Mongoose models |
+| Midtrans | Payment transaction + notification | External payment service |
 
-## Development sequence
+## 5. Development pipeline
 
-| Stage | Work | Completion evidence |
+```mermaid
+flowchart LR
+    SRC[Pull source] --> ENV[Configure env]
+    ENV --> DB[Connect MongoDB]
+    ENV --> API[Install/run backend]
+    ENV --> C[Install/run customer UI]
+    ENV --> AD[Install/run admin UI]
+    API --> TEST[API/payment sandbox checks]
+    C --> BUILD[Build/lint]
+    AD --> BUILD
+    TEST --> REVIEW[Review]
+    BUILD --> REVIEW
+```
+
+| Directory | Command | Purpose |
 | --- | --- | --- |
-| 1. Establish scope | Read the source map and limitations; choose one concrete behavior to change. | Expected input, output, and failure behavior. |
-| 2. Prepare environment | Use the manifests and configuration references. | Required local services reachable with synthetic data. |
-| 3. Implement | Follow the implemented flow and update the layer that owns the behavior. | Focused diff with matching caller/callee contracts. |
-| 4. Validate | Run applicable declared checks and the scenarios below. | Recorded commands, results, and untested dependencies. |
-| 5. Review and release | Review the diff and update documentation; release after environment checks. | Reviewed change and target-environment smoke check. |
+| `backend` | `npm run dev` | Run API with nodemon |
+| `backend` | `npm run start` | Start API |
+| `frontend` | `npm run dev` | Customer UI |
+| `frontend` | `npm run build` | Customer production build |
+| `frontend` | `npm run lint` | Customer lint |
+| `admin` | `npm run dev` | Admin UI |
+| `admin` | `npm run build` | Admin production build |
+| `admin` | `npm run lint` | Admin lint |
 
-These stages are a recommended maintenance sequence, not a historical timeline.
+## 6. Verification gates
 
-## Configuration and runtime prerequisites
+Use Midtrans sandbox and synthetic data to validate:
 
-No standard example-environment, container, or test-runner configuration matched the scanned inventory. Consult the source map for runtime assumptions.
+- Product price is loaded server-side rather than trusted from the browser.
+- Insufficient stock.
+- Invalid or tampered payment notification.
+- Duplicate payment notification.
+- Two callbacks arriving near-simultaneously.
+- Order state transition after successful payment.
+- Stock deducted once only.
+- Customer can read only their own orders.
+- Admin/customer authorization separation.
+- Failed payment and expired transaction states.
 
-Configuration-file presence does not prove deployment success. Keep credentials outside version control and use synthetic records during setup.
+## 7. Release pipeline
 
-## Verification plan
+```mermaid
+flowchart LR
+    PR[Reviewed PR] --> BUILD[Build Customer + Admin]
+    BUILD --> API[Deploy Express API]
+    API --> DB[Verify MongoDB]
+    DB --> PAY[Verify Midtrans config]
+    PAY --> CALLBACK[Verify callback URL]
+    CALLBACK --> SMOKE[Sandbox payment smoke test]
+```
 
-Use payment sandbox fixtures to verify invalid signatures, duplicate notifications, insufficient stock, price tampering, and customer/admin separation.
+No `.github/workflows/` automation was found in the reviewed snapshot.
 
-No conventional test files were found in the scanned tree. The scenarios above are proposed acceptance checks, not existing automated coverage.
+## 8. Known gaps
 
-## Known limitations and next work
+1. Stock deduction uses per-item writes plus an order flag; this alone does not establish concurrency-safe exactly-once processing.
+2. Payment and database updates span different systems and require idempotency-focused testing.
+3. No conventional automated test suite was identified in the reviewed tree.
+4. CI is not currently represented by GitHub Actions in this snapshot.
 
-Stock deduction uses per-item writes and an order flag; that does not by itself prove concurrency-safe, exactly-once processing across simultaneous callbacks. Payment and database operations span separate systems.
+## 9. Source map
 
-Prioritize the acceptance checks above before expanding the feature set. A declared test command or example test does not establish production readiness.
+- [`backend/server.js`](https://github.com/HidayahMF/kantinpintarv2/blob/1188cfd98fc8bd6ed4c57b19cd1f674e7321358b/backend/server.js)
+- [`backend/controllers/orderController.js`](https://github.com/HidayahMF/kantinpintarv2/blob/1188cfd98fc8bd6ed4c57b19cd1f674e7321358b/backend/controllers/orderController.js)
+- [`backend/middleware/authAdminMiddleware.js`](https://github.com/HidayahMF/kantinpintarv2/blob/1188cfd98fc8bd6ed4c57b19cd1f674e7321358b/backend/middleware/authAdminMiddleware.js)
+- [`frontend/src/context/StoreContextProvider.jsx`](https://github.com/HidayahMF/kantinpintarv2/blob/1188cfd98fc8bd6ed4c57b19cd1f674e7321358b/frontend/src/context/StoreContextProvider.jsx)
 
-## Keeping this document accurate
-
-Update the source snapshot and affected flow when entry points, persistence, authentication, or integration contracts change. Keep planned capabilities separate from implemented behavior, and record actual build/test results only after running them.
+Keep this guide synchronized with order state transitions, stock rules, Midtrans integration, and authorization changes.
